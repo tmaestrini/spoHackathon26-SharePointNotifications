@@ -8,7 +8,11 @@ In order to help us process your contributions, please make sure you do the foll
 
 - don't surprise us with big PR's. Instead _create an issue_ & start a discussion so we can agree on a direction before you invest a large amount of time.
 - create your branch from `dev` (NOT `main`). This will make it easier for us to merge your changes.
-- submit PR to the `dev` branch of this repo (NOT `main`). PRs submitted to other branches will be declined.
+- submit PR to the `dev` branch of this repo (NOT `main`), by either contributing to:
+    - `spfx` folder contains the SPFx extension
+    - `backend` folder contains the backend services (Azure Functions)
+
+  PRs submitted to other branches will be declined.
 - let us know what's in the PR: sometimes code is not enough and in order to help us understand your awesome work please follow the PR template to provide required information.
 - don't commit code you didn't write.
 
@@ -17,14 +21,17 @@ Do not be afraid to ask question. We are here to help you succeed in helping us 
 ## 👣 How to start - Minimal path to awesome
 
 > [!IMPORTANT]
-> Before you start, familiarize yourself with the SPFx webpart development process. Make sure that your local dependencies on you developer machine matches the appropriate requirements.
+> Before you start, familiarize yourself with the SPFx extensions development process or the Azure Functions development process. Make sure that your local dependencies on you developer machine matches the appropriate requirements.
 
-- Fork this project. When creating the fork unselect the checkbox 'Copy the `main` branch only' to get your copy of the `dev` and `main` branch.
+- Fork this project. When creating the fork unselect the checkbox 'Copy the `main` branch only' to get your copy of all the existing branches (`dev`, `dev-spfx`, `dev-backend` and `main` branch).
 - Clone the forked repository
-- Open the _spfx-copilot-dashboard_ project in Visual Studio Code
+- Open the project in Visual Studio Code
+- Navigate to the folder of your choice: `backend` or `spfx`
 - run `npm install`
-- Press `heft start` to start the project on your local machine
+- Depending on your currend working device...
+    - `backend`: Press `F5` to run the Azure Functions locally and start debugging
+    - `spfx`: Press `heft start` to start the project on your local machine
 
 ## ❓ More guidance and tips
 
-For more usage guidance and tips go to the repo [README](./README.md).
+For more usage guidance and tips go to the repo [README](./README.md); it still not exists – but give us some time. 😃
