@@ -21,9 +21,10 @@ Short summary on functionality and used technologies.
 
 ## Solution
 
-| Solution    | Author(s)                                               |
-| ----------- | ------------------------------------------------------- |
-| folder name | Author details (name, company, twitter alias with link) |
+| Solution     | Authors (alphabetically)               |
+| -------------| ---------------------------------------|
+| spfx         | Dan Toft <br>Tobias Maestrini          |
+| az-functions | Guido Zambarda <br>Nishkalank Bezawada |
 
 ## Version history
 

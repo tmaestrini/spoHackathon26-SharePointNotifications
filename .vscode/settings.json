@@ -1,14 +1,9 @@
-// Place your settings in this file to overwrite default and user settings.
 {
-  // Configure glob patterns for excluding files and folders in the file explorer.
-  "files.exclude": {
-    "**/.git": true,
-    "**/.DS_Store": true,
-    "**/bower_components": true,
-    "**/coverage": true,
-    "**/jest-output": true,
-    "**/lib-amd": true,
-    "src/**/*.scss.ts": true
-  },
-  "typescript.tsdk": ".\\node_modules\\typescript\\lib"
+    "azureFunctions.deploySubpath": "az-functions",
+    "azureFunctions.postDeployTask": "npm install (functions)",
+    "azureFunctions.projectLanguage": "TypeScript",
+    "azureFunctions.projectRuntime": "~4",
+    "debug.internalConsoleOptions": "neverOpen",
+    "azureFunctions.projectLanguageModel": 4,
+    "azureFunctions.preDeployTask": "npm prune (functions)"
 }
