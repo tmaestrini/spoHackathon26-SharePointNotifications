@@ -23,7 +23,7 @@ Do not be afraid to ask question. We are here to help you succeed in helping us 
 - Clone the forked repository
 - Open the _spfx-copilot-dashboard_ project in Visual Studio Code
 - run `npm install`
-- Press `heft serve` to start the project on your local machine
+- Press `heft start` to start the project on your local machine
 
 ## ❓ More guidance and tips
 
