@@ -42,8 +42,7 @@ export default class NotificationsCommandSet extends BaseListViewCommandSet<INot
   public onExecute(event: IListViewCommandSetExecuteEventParameters): void {
     switch (event.itemId) {
       case 'COMMAND_Notifications': {
-        const notificationComponent = React.createElement(SPONotification, { onClose: () => dialog.close() });
-        const dialog = new SPONotificationDialog(notificationComponent);
+        const dialog = new SPONotificationDialog(this.context);
         dialog.show().catch(error => console.error(error));
         break;
       }
