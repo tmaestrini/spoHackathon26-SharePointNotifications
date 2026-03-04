@@ -1,11 +1,13 @@
 import { Log } from '@microsoft/sp-core-library';
+import * as React from 'react';
 import {
   BaseListViewCommandSet,
-  type Command,
+  Command,
   type IListViewCommandSetExecuteEventParameters,
   type ListViewStateChangedEventArgs
 } from '@microsoft/sp-listview-extensibility';
-import { Dialog } from '@microsoft/sp-dialog';
+import SPONotificationDialog from '../components/SPONotificationDialog';
+import SPONotification from '../components/SPONotification';
 
 /**
  * If your command set uses the ClientSideComponentProperties JSON input,
@@ -24,28 +26,27 @@ export default class NotificationsCommandSet extends BaseListViewCommandSet<INot
 
   public onInit(): Promise<void> {
     Log.info(LOG_SOURCE, 'Initialized NotificationsCommandSet');
-
-    // initial state of the command's visibility
-    const compareOneCommand: Command = this.tryGetCommand('COMMAND_1');
-    compareOneCommand.visible = false;
-
-    this.context.listView.listViewStateChangedEvent.add(this, this._onListViewStateChanged);
+    this.handleCommands();
 
     return Promise.resolve();
   }
 
+  private handleCommands(): void {
+    const notificationsCommand: Command = this.tryGetCommand('COMMAND_Notifications');
+    if (notificationsCommand) {
+      notificationsCommand.visible = true;
+    }
+    this.context.listView.listViewStateChangedEvent.add(this, this._onListViewStateChanged);
+  }
+
   public onExecute(event: IListViewCommandSetExecuteEventParameters): void {
     switch (event.itemId) {
-      case 'COMMAND_1':
-        Dialog.alert(`${this.properties.sampleTextOne}`).catch(() => {
-          /* handle error */
-        });
+      case 'COMMAND_Notifications': {
+        const notificationComponent = React.createElement(SPONotification, { onClose: () => dialog.close() });
+        const dialog = new SPONotificationDialog(notificationComponent);
+        dialog.show().catch(error => console.error(error));
         break;
-      case 'COMMAND_2':
-        Dialog.alert(`${this.properties.sampleTextTwo}`).catch(() => {
-          /* handle error */
-        });
-        break;
+      }
       default:
         throw new Error('Unknown command');
     }
@@ -53,16 +54,6 @@ export default class NotificationsCommandSet extends BaseListViewCommandSet<INot
 
   private _onListViewStateChanged = (args: ListViewStateChangedEventArgs): void => {
     Log.info(LOG_SOURCE, 'List view state changed');
-
-    const compareOneCommand: Command = this.tryGetCommand('COMMAND_1');
-    if (compareOneCommand) {
-      // This command should be hidden unless exactly one row is selected.
-      compareOneCommand.visible = this.context.listView.selectedRows?.length === 1;
-    }
-
-    // TODO: Add your logic here
-
-    // You should call this.raiseOnChage() to update the command bar
     this.raiseOnChange();
   }
 }
