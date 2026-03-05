@@ -24,7 +24,7 @@ export default class SPONotificationDialog {
             <IdPrefixProvider value="spo-notification-">
                 <FluentProvider theme={isDark ? webDarkTheme : webLightTheme}>
                     <UniversalProvider context={appContext as any}>
-                        <SPONotification onClose={() => this.close()} context={this.context} />
+                        <SPONotification onClose={() => this.close()} />
                     </UniversalProvider>
                 </FluentProvider>
             </IdPrefixProvider>,
