@@ -1,6 +1,6 @@
 # SharePoint Notifications Backend
 
-Azure Functions backend for managing SharePoint notification registrations. Users can subscribe to changes on specific SharePoint sites, webs, lists, or items and receive notifications via Teams or Email.
+Azure Functions backend for managing SharePoint notification registrations. Users can subscribe to changes on specific SharePoint lists and receive notifications via Teams or Email.
 
 ## Tech Stack
 
