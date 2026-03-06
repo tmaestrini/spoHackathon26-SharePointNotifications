@@ -7,7 +7,7 @@ import {
   type ListViewStateChangedEventArgs
 } from '@microsoft/sp-listview-extensibility';
 import SPONotificationDialog from '../components/SPONotificationDialog';
-import SPONotification from '../components/SPONotification';
+
 
 /**
  * If your command set uses the ClientSideComponentProperties JSON input,
