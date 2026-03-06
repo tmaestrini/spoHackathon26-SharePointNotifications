@@ -9,33 +9,29 @@ export type NotificationSettings = {
     changeType?: ChangeType;
 }
 
-export interface INotificationContext {
+export interface INotificationSettingsContext {
     changeSetting: (setting: Partial<NotificationSettings>) => void;
-    getSettings: () => NotificationSettings;
+    notificationSettings: NotificationSettings;
 }
 
-const NotificationContext = React.createContext<INotificationContext | undefined>(undefined);
+const NotificationSettingsContext = React.createContext<INotificationSettingsContext | undefined>(undefined);
 
-export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const NotificationSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [notificationSettings, setNotificationSettings] = React.useState<NotificationSettings>({});
 
     const changeSetting = (setting: Partial<NotificationSettings>) => {
         setNotificationSettings(prev => ({ ...prev, ...setting }));
     };
 
-    const getSettings = (): NotificationSettings => {
-        return notificationSettings;
-    };
-
     return (
-        <NotificationContext.Provider value={{ changeSetting, getSettings }}>
+        <NotificationSettingsContext.Provider value={{ changeSetting, notificationSettings }}>
             {children}
-        </NotificationContext.Provider>
+        </NotificationSettingsContext.Provider>
     );
 };
 
-export const useNotificationContext = (): INotificationContext => {
-    const context = React.useContext(NotificationContext);
+export const useNotificationContext = (): INotificationSettingsContext => {
+    const context = React.useContext(NotificationSettingsContext);
     if (!context) {
         throw new Error('useNotificationContext must be used within a NotificationProvider');
     }
