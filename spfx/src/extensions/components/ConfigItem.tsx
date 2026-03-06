@@ -15,16 +15,16 @@ const ConfigItem: React.FC<ConfigItemProps> = ({ title, label, children }) => {
             defaultSize="30%"
             resizable={false}
             primaryContent={
-                <StackV2 direction="vertical" gap="s"
-                    style={{ background: tokens.colorNeutralBackground1, height: '100%' }}>
+                <StackV2 direction="vertical" gap="s" 
+                    style={{ background: tokens.colorNeutralBackground1, overflow: 'hidden', height: '100%'}}>
                     <TypographyControl fontWeight="semibold" fontSize="sm">{title}</TypographyControl>
                     {label && <TypographyControl fontSize="xs" style={{lineHeight: '0.9rem'}} color={tokens.colorNeutralForeground3}>{label}</TypographyControl>}
                 </StackV2>
             }
             secondaryContent={
-                children ? children : <></>
+                children ? <div style={{overflow: 'hidden'}}>{children}</div> : <></>
             }
-            styles={{marginBottom: tokens.spacingVerticalL}}
+            styles={{marginBottom: tokens.spacingVerticalXL}}
         />
     );
 };
