@@ -1,11 +1,18 @@
-import { InputField, DropdownField, RenderDialog, StackV2, TypographyControl, useApplicationContext } from '@spteck/react-controls-v2';
+import { RenderDialog, StackV2, TypographyControl, useApplicationContext } from '@spteck/react-controls-v2';
 import * as React from 'react'; import {
     Warning24Regular, Info24Regular,
     DismissCircle24Regular,
     Save24Regular,
 } from '@fluentui/react-icons';
-import { Button, Radio, RadioGroup, RadioGroupOnChangeData, tokens } from '@fluentui/react-components';
-import ConfigItem from './ConfigItem';
+import { Button, makeStyles, SelectTabData, Tab, TabList, TabValue, tokens } from '@fluentui/react-components';
+import NotificationSettings from './NotificationSettings';
+
+
+const useStyles = makeStyles({
+    panels: {
+        padding: "0 10px",
+    },
+});
 
 export interface ISPONotificationProps {
     onClose: () => void;
@@ -13,14 +20,10 @@ export interface ISPONotificationProps {
 
 const SPONotification: React.FC<ISPONotificationProps> = ({ onClose }) => {
     const [dialogOpen, setDialogOpen] = React.useState(true);
+    const [selectedTab, setSelectedTab] = React.useState<TabValue>('settings');
     const context = useApplicationContext();
 
-    // TODO: Adjust the state and handlers according to our needs (config items)
-    const [deliveryMethod, setDeliveryMethod] = React.useState<string | undefined>(undefined);
-    const [changeType, setChangeType] = React.useState<string | undefined>(undefined);
-
-    console.log(changeType, deliveryMethod);
-
+    const styles = useStyles();
     return (
         <RenderDialog
             isOpen={dialogOpen}
@@ -65,46 +68,17 @@ const SPONotification: React.FC<ISPONotificationProps> = ({ onClose }) => {
                     </TypographyControl>
                 </StackV2>
 
-                {/* TODO: Adjust config items according to our needs */}
-                <ConfigItem title="Alert Title"
-                    label="Enter the title for this alert. This is included in the subject of the notification sent for this alert.">
-                    <InputField label="" placeholder="Set the title of the notification" />
-                </ConfigItem>
-                <ConfigItem title="Send Alerts To"
-                    label="You can enter user names or email addresses. Separate them with semicolons">
-                    <InputField label="" placeholder="Set the email addresses of the recipients" />
-                </ConfigItem>
-                <ConfigItem title="Delivery Method"
-                    label="Specify how you want the alerts delivered.">
-                    <DropdownField
-                        label="Send me alerts by:"
-                        placeholder="Select the channel"
-                        required
-                        options={[
-                            { value: 'EMAIL', text: 'Email' },
-                            { value: 'TEAMS', text: 'Microsoft Teams (Chat)' },
-                            { value: 'TEAMS_CHANNEL', text: 'Microsoft Teams Channel' },
-                        ]}
-                        renderItem={(option: { value: string, text?: string }) => (
-                            <StackV2 direction="horizontal" gap="s" alignItems="center">
-                                <TypographyControl>{option.text}</TypographyControl>
-                            </StackV2>
-                        )}
-                        onChange={(value: string) => setDeliveryMethod(value)}
-                        hint="Only one delivery method can be selected at the moment."
-                    />
+                <TabList defaultSelectedValue={selectedTab} onTabSelect={(_, data: SelectTabData) => {
+                    setSelectedTab(data.value);
+                }}>
+                    <Tab value="settings">Notification Settings</Tab>
+                    <Tab value="tab2">Alerts on this List</Tab>
+                </TabList>
 
-                </ConfigItem>
-                <ConfigItem title="Change Type"
-                    label="Specify the type of changes that you want to be alerted to.">
-                    <RadioGroup
-                        onChange={(ev: React.FormEvent<HTMLDivElement>, data: RadioGroupOnChangeData) => setChangeType(data.value)}>
-                        <Radio value="ALL" label="All changes" />
-                        <Radio value="CREATED" label="New items are added" />
-                        <Radio value="UPDATED" label="Existing items are modified" />
-                        <Radio value="DELETED" label="Existing items are deleted" />
-                    </RadioGroup>
-                </ConfigItem>
+                <div className={styles.panels}>
+                    {selectedTab === 'settings' && <NotificationSettings />}
+                </div>
+
             </StackV2>
         </RenderDialog >
     );
