@@ -6,6 +6,7 @@ import * as React from 'react'; import {
 } from '@fluentui/react-icons';
 import { Button, makeStyles, SelectTabData, Tab, TabList, TabValue, tokens } from '@fluentui/react-components';
 import NotificationSettings from './NotificationSettings';
+import { NotificationSettingsProvider } from '../context/NotificationSettingsContext';
 
 
 const useStyles = makeStyles({
@@ -25,62 +26,64 @@ const SPONotification: React.FC<ISPONotificationProps> = ({ onClose }) => {
 
     const styles = useStyles();
     return (
-        <RenderDialog
-            isOpen={dialogOpen}
+        <NotificationSettingsProvider>
+            <RenderDialog
+                isOpen={dialogOpen}
 
-            dialogTitle={
-                <StackV2 direction="horizontal" gap="s" alignItems="center">
-                    <Warning24Regular style={{ color: tokens.colorPaletteYellowForeground2 }} />
-                    <TypographyControl fontWeight="semibold" fontSize="l">
-                        Notification settings for {context?.pageContext?.user?.displayName || 'current user'}
+                dialogTitle={
+                    <StackV2 direction="horizontal" gap="s" alignItems="center">
+                        <Warning24Regular style={{ color: tokens.colorPaletteYellowForeground2 }} />
+                        <TypographyControl fontWeight="semibold" fontSize="l">
+                            Notification settings for {context?.pageContext?.user?.displayName || 'current user'}
+                        </TypographyControl>
+                    </StackV2>
+                }
+                minWidth={'1170px'}
+                maxWidth={'1170px'}
+                minHeight={'700px'}
+                maxHeight={'700px'}
+
+                dialogActions={
+                    <StackV2 paddingTop="m" direction="horizontal" gap="s"
+                        justifyContent="flex-end" style={{ width: '100%' }}>
+                        <Button appearance="secondary" icon={<DismissCircle24Regular />}
+                            onClick={() => { setDialogOpen(false); onClose(); }}>Cancel</Button>
+                        <Button appearance="primary" icon={<Save24Regular />}
+                            onClick={() => { setDialogOpen(false); onClose(); }}>Save</Button>
+                    </StackV2>
+                }
+                onDismiss={() => { setDialogOpen(false); onClose(); }}
+            >
+                <StackV2 direction="vertical" gap="l">
+                    <TypographyControl>
+                        Alert me when items change
                     </TypographyControl>
-                </StackV2>
-            }
-            minWidth={'1170px'}
-            maxWidth={'1170px'}
-            minHeight={'700px'}
-            maxHeight={'700px'}
+                    <StackV2 direction="horizontal" gap="s" alignItems="center" padding="m"
+                        style={{
+                            borderRadius: tokens.borderRadiusMedium,
+                            backgroundColor: tokens.colorNeutralBackground3,
+                            border: `1px solid ${tokens.colorNeutralStroke2}`
+                        }}>
+                        <Info24Regular style={{ color: tokens.colorNeutralForeground3, flexShrink: 0 }} />
+                        <TypographyControl fontSize="xs" color={tokens.colorNeutralForeground3}>
+                            This dialog is rendered using RenderDialog from @spteck/react-controls-v2.
+                        </TypographyControl>
+                    </StackV2>
 
-            dialogActions={
-                <StackV2 paddingTop="m" direction="horizontal" gap="s"
-                    justifyContent="flex-end" style={{ width: '100%' }}>
-                    <Button appearance="secondary" icon={<DismissCircle24Regular />}
-                        onClick={() => { setDialogOpen(false); onClose(); }}>Cancel</Button>
-                    <Button appearance="primary" icon={<Save24Regular />}
-                        onClick={() => { setDialogOpen(false); onClose(); }}>Save</Button>
-                </StackV2>
-            }
-            onDismiss={() => { setDialogOpen(false); onClose(); }}
-        >
-            <StackV2 direction="vertical" gap="l">
-                <TypographyControl>
-                    Alert me when items change
-                </TypographyControl>
-                <StackV2 direction="horizontal" gap="s" alignItems="center" padding="m"
-                    style={{
-                        borderRadius: tokens.borderRadiusMedium,
-                        backgroundColor: tokens.colorNeutralBackground3,
-                        border: `1px solid ${tokens.colorNeutralStroke2}`
+                    <TabList defaultSelectedValue={selectedTab} onTabSelect={(_, data: SelectTabData) => {
+                        setSelectedTab(data.value);
                     }}>
-                    <Info24Regular style={{ color: tokens.colorNeutralForeground3, flexShrink: 0 }} />
-                    <TypographyControl fontSize="xs" color={tokens.colorNeutralForeground3}>
-                        This dialog is rendered using RenderDialog from @spteck/react-controls-v2.
-                    </TypographyControl>
+                        <Tab value="settings">Notification Settings</Tab>
+                        <Tab value="tab2">Alerts on this List</Tab>
+                    </TabList>
+
+                    <div className={styles.panels}>
+                        {selectedTab === 'settings' && <NotificationSettings />}
+                    </div>
+
                 </StackV2>
-
-                <TabList defaultSelectedValue={selectedTab} onTabSelect={(_, data: SelectTabData) => {
-                    setSelectedTab(data.value);
-                }}>
-                    <Tab value="settings">Notification Settings</Tab>
-                    <Tab value="tab2">Alerts on this List</Tab>
-                </TabList>
-
-                <div className={styles.panels}>
-                    {selectedTab === 'settings' && <NotificationSettings />}
-                </div>
-
-            </StackV2>
-        </RenderDialog >
+            </RenderDialog >
+        </NotificationSettingsProvider>
     );
 };
 
