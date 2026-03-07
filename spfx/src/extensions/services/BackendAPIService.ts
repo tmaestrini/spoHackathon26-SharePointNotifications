@@ -2,6 +2,7 @@
 import { AadHttpClient, AadHttpClientFactory, HttpClientResponse } from '@microsoft/sp-http';
 import { ListViewCommandSetContext } from '@microsoft/sp-listview-extensibility';
 import { NotificationRegistration } from '../models/NotificationRegistration';
+import { IConfiguration } from '../models/Configuration';
 
 type BackendAPIServiceResponse = {
     status: number;
@@ -13,17 +14,16 @@ export default class BackendAPIService {
     private static instance: BackendAPIService;
     private aadHttpClientFactory: AadHttpClientFactory | undefined = undefined;
     private client: AadHttpClient | undefined = undefined;
-
-    private AZURE_FUNCTION_BASE_URL = "https://spo-notifications-api.azurewebsites.net/api/";
-    private AZURE_FUNCTION_ClIENT_ID = "d1b0cbb7-8c9e-4a3b-9cbd-1c3fddbfaa5b"; // client ID of the Azure Function app registration Entra ID
+    private AZURE_FUNCTION_CLIENT_ID: string | undefined = undefined;
+    private AZURE_FUNCTION_BASE_URL: string | undefined = undefined;
 
     private constructor() { }
 
-    public static init(baseUrl: string, context: ListViewCommandSetContext): BackendAPIService {
+    public static init(context: ListViewCommandSetContext, configuration: IConfiguration): BackendAPIService {
         const instance = this.getInstance();
-        instance.AZURE_FUNCTION_BASE_URL = baseUrl;
         instance.aadHttpClientFactory = context.aadHttpClientFactory;
-        // TODO: Set the client ID from admin configuration
+        instance.AZURE_FUNCTION_CLIENT_ID = configuration.AZURE_FUNCTION_CLIENT_ID;
+        instance.AZURE_FUNCTION_BASE_URL = configuration.AZURE_FUNCTION_BASE_URL;
 
         return instance;
     }
@@ -37,7 +37,7 @@ export default class BackendAPIService {
 
     private async query(endpoint: string, method: 'POST' | 'GET' | 'PUT' | 'DELETE', body?: any): Promise<HttpClientResponse> {
         if (!this.client) {
-            this.client = await this.aadHttpClientFactory?.getClient(this.AZURE_FUNCTION_ClIENT_ID);
+            this.client = await this.aadHttpClientFactory?.getClient(this.AZURE_FUNCTION_CLIENT_ID ?? "");
         }
 
         const response = await this.client?.fetch(this.AZURE_FUNCTION_BASE_URL + endpoint, AadHttpClient.configurations.v1, {

@@ -7,6 +7,8 @@ import {
   type ListViewStateChangedEventArgs
 } from '@microsoft/sp-listview-extensibility';
 import SPONotificationDialog from '../components/SPONotificationDialog';
+import { Dialog } from '@microsoft/sp-dialog';
+import { IConfiguration } from '../models/Configuration';
 
 
 /**
@@ -16,8 +18,8 @@ import SPONotificationDialog from '../components/SPONotificationDialog';
  */
 export interface INotificationsCommandSetProperties {
   // This is an example; replace with your own properties
-  sampleTextOne: string;
-  sampleTextTwo: string;
+  AZURE_FUNCTION_BASE_URL: string;
+  AZURE_FUNCTION_CLIENT_ID: string;
 }
 
 const LOG_SOURCE: string = 'NotificationsCommandSet';
@@ -28,6 +30,10 @@ export default class NotificationsCommandSet extends BaseListViewCommandSet<INot
     Log.info(LOG_SOURCE, 'Initialized NotificationsCommandSet');
     this.handleCommands();
 
+    if(this.properties.AZURE_FUNCTION_BASE_URL == null || this.properties.AZURE_FUNCTION_CLIENT_ID == null) {
+      console.error('Azure Function configuration is missing.');
+      Dialog.alert('NotificationsCommandSet - Azure Function configuration is missing. Please check the configuration and try again.');
+    }
     return Promise.resolve();
   }
 
@@ -42,7 +48,11 @@ export default class NotificationsCommandSet extends BaseListViewCommandSet<INot
   public onExecute(event: IListViewCommandSetExecuteEventParameters): void {
     switch (event.itemId) {
       case 'COMMAND_Notifications': {
-        const dialog = new SPONotificationDialog(this.context);
+        const configuration: IConfiguration = {
+          AZURE_FUNCTION_BASE_URL: this.properties.AZURE_FUNCTION_BASE_URL,
+          AZURE_FUNCTION_CLIENT_ID: this.properties.AZURE_FUNCTION_CLIENT_ID
+        }
+        const dialog = new SPONotificationDialog(this.context, configuration);
         dialog.show().catch(error => console.error(error));
         break;
       }
