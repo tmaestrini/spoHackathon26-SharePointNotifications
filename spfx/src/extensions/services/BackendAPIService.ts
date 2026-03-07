@@ -73,11 +73,11 @@ export default class BackendAPIService {
             });
         } catch (error) {
             console.error('Error saving notification settings:', error);
-            return {
+            return Promise.reject({
                 status: 500,
                 result: 'error',
                 message: `An error occurred while saving notification settings: (${error})`
-            };
+            });
         }
     }
 }

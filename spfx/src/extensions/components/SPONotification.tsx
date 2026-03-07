@@ -1,4 +1,4 @@
-import { RenderDialog, StackV2, TypographyControl, useApplicationContext } from '@spteck/react-controls-v2';
+import { RenderDialog, set, StackV2, TypographyControl, useApplicationContext } from '@spteck/react-controls-v2';
 import * as React from 'react'; import {
     Warning24Regular, Info24Regular,
     DismissCircle24Regular,
@@ -26,19 +26,26 @@ export interface ISPONotificationProps {
 }
 
 const SPONotification: React.FC<ISPONotificationProps> = ({ spoContext, onClose, configuration }) => {
-    const [dialogOpen, setDialogOpen] = React.useState(true);
-    const [selectedTab, setSelectedTab] = React.useState<TabValue>('settings');
     const context = useApplicationContext();
 
-    const onSave = () => {
+    const [dialogOpen, setDialogOpen] = React.useState(true);
+    const [selectedTab, setSelectedTab] = React.useState<TabValue>('settings');
+    const [errorMessage, setErrorMessage] = React.useState<string | undefined>(undefined);
+    
+    const onSave = async () => {
         // TODO: call backend API to save the settings (get the service URL from admin context)
         const backendService = BackendAPIService.init(
             spoContext,
             configuration
         );
-        backendService.createRegistration({/* pass the settings from context */} as NotificationRegistration)
-        // setDialogOpen(false);
-        // onClose();
+        try {
+            await backendService.createRegistration({/* pass the settings from context */ } as NotificationRegistration)
+            // setDialogOpen(false);
+            // onClose();
+        } catch (error) {
+            setErrorMessage(error instanceof Error ? error.message : 'Failed to save notification settings');
+            console.error('Failed to save notification settings:', error);
+        }
     }
 
     const styles = useStyles();
@@ -75,17 +82,20 @@ const SPONotification: React.FC<ISPONotificationProps> = ({ spoContext, onClose,
                     <TypographyControl>
                         Alert me when items change
                     </TypographyControl>
-                    <StackV2 direction="horizontal" gap="s" alignItems="center" padding="m"
-                        style={{
-                            borderRadius: tokens.borderRadiusMedium,
-                            backgroundColor: tokens.colorNeutralBackground3,
-                            border: `1px solid ${tokens.colorNeutralStroke2}`
-                        }}>
-                        <Info24Regular style={{ color: tokens.colorNeutralForeground3, flexShrink: 0 }} />
-                        <TypographyControl fontSize="xs" color={tokens.colorNeutralForeground3}>
-                            This dialog is rendered using RenderDialog from @spteck/react-controls-v2.
-                        </TypographyControl>
-                    </StackV2>
+
+                    {errorMessage &&
+                        <StackV2 direction="horizontal" gap="s" alignItems="center" padding="m"
+                            style={{
+                                borderRadius: tokens.borderRadiusMedium,
+                                backgroundColor: tokens.colorNeutralBackground3,
+                                border: `1px solid ${tokens.colorNeutralStroke2}`
+                            }}>
+                            <Info24Regular style={{ color: tokens.colorNeutralForeground3, flexShrink: 0 }} />
+                            <TypographyControl fontSize="xs" color={tokens.colorNeutralForeground3}>
+                                {errorMessage}
+                            </TypographyControl>
+                        </StackV2>
+                    }
 
                     <TabList defaultSelectedValue={selectedTab} onTabSelect={(_, data: SelectTabData) => {
                         setSelectedTab(data.value);
@@ -100,7 +110,7 @@ const SPONotification: React.FC<ISPONotificationProps> = ({ spoContext, onClose,
 
                 </StackV2>
             </RenderDialog >
-        </NotificationSettingsProvider>
+        </NotificationSettingsProvider >
     );
 };
 
