@@ -13,18 +13,20 @@ import { IConfiguration } from '../models/Configuration';
 
 
 /**
- * If your command set uses the ClientSideComponentProperties JSON input,
- * it will be deserialized into the BaseExtension.properties object.
- * You can define an interface to describe it.
+ * The properties for the NotificationsCommandSet command set.
+ * @remarks
+ * The properties defined in this interface are expected to be passed in the manifest of the extension. 
+ * They can be configured by the tenant admin in the app catalog.
+ * For more information, see https://learn.microsoft.com/en-us/sharepoint/dev/spfx/extensions/basics/tenant-wide-deployment-extensions
  */
 export interface INotificationsCommandSetProperties {
-  // This is an example; replace with your own properties
   AZURE_FUNCTION_BASE_URL: string;
   AZURE_FUNCTION_CLIENT_ID: string;
 }
 
 const LOG_SOURCE: string = 'NotificationsCommandSet';
 const COMMAND_NAME: string = 'COMMAND_Notifications';
+
 export default class NotificationsCommandSet extends BaseListViewCommandSet<INotificationsCommandSetProperties> {
 
   public onInit(): Promise<void> {
