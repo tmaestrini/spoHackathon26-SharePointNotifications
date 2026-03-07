@@ -7,6 +7,9 @@ import * as React from 'react'; import {
 import { Button, makeStyles, SelectTabData, Tab, TabList, TabValue, tokens } from '@fluentui/react-components';
 import NotificationSettings from './NotificationSettings';
 import { NotificationSettingsProvider } from '../context/NotificationSettingsContext';
+import BackendAPIService from '../services/BackendAPIService';
+import { ListViewCommandSetContext } from '@microsoft/sp-listview-extensibility';
+import { NotificationRegistration } from '../models/NotificationRegistration';
 
 
 const useStyles = makeStyles({
@@ -16,13 +19,25 @@ const useStyles = makeStyles({
 });
 
 export interface ISPONotificationProps {
+    spoContext: ListViewCommandSetContext
     onClose: () => void;
 }
 
-const SPONotification: React.FC<ISPONotificationProps> = ({ onClose }) => {
+const SPONotification: React.FC<ISPONotificationProps> = ({ spoContext, onClose }) => {
     const [dialogOpen, setDialogOpen] = React.useState(true);
     const [selectedTab, setSelectedTab] = React.useState<TabValue>('settings');
     const context = useApplicationContext();
+
+    const onSave = () => {
+        // TODO: call backend API to save the settings (get the service URL from admin context)
+        const backendService = BackendAPIService.init(
+            'https://spo-notifications-api.azurewebsites.net/api/', 
+            spoContext
+        );
+        backendService.createRegistration({/* pass the settings from context */} as NotificationRegistration)
+        // setDialogOpen(false);
+        // onClose();
+    }
 
     const styles = useStyles();
     return (
@@ -49,7 +64,7 @@ const SPONotification: React.FC<ISPONotificationProps> = ({ onClose }) => {
                         <Button appearance="secondary" icon={<DismissCircle24Regular />}
                             onClick={() => { setDialogOpen(false); onClose(); }}>Cancel</Button>
                         <Button appearance="primary" icon={<Save24Regular />}
-                            onClick={() => { setDialogOpen(false); onClose(); }}>Save</Button>
+                            onClick={onSave}>Save</Button>
                     </StackV2>
                 }
                 onDismiss={() => { setDialogOpen(false); onClose(); }}
