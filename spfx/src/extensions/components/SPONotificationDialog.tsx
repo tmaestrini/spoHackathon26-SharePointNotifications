@@ -5,13 +5,16 @@ import { UniversalProvider } from '@spteck/react-controls-v2';
 import { FluentProvider, webLightTheme, webDarkTheme, IdPrefixProvider } from '@fluentui/react-components';
 import SPONotification from './SPONotification';
 import ReactDOM from 'react-dom';
+import { IConfiguration } from '../models/Configuration';
 
 export default class SPONotificationDialog {
     private container: HTMLDivElement;
     private context: ListViewCommandSetContext;
+    private configuration: IConfiguration;
 
-    constructor(context: ListViewCommandSetContext) {
+    constructor(context: ListViewCommandSetContext, configuration: IConfiguration) {
         this.context = context;
+        this.configuration = configuration;
         this.container = document.createElement('div');
     }
 
@@ -24,7 +27,7 @@ export default class SPONotificationDialog {
             <IdPrefixProvider value="spo-notification-">
                 <FluentProvider theme={isDark ? webDarkTheme : webLightTheme}>
                     <UniversalProvider context={appContext as any}>
-                        <SPONotification onClose={() => this.close()} spoContext={this.context} />
+                        <SPONotification onClose={() => this.close()} spoContext={this.context} configuration={this.configuration} />
                     </UniversalProvider>
                 </FluentProvider>
             </IdPrefixProvider>,

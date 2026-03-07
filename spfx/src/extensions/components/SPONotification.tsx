@@ -10,6 +10,7 @@ import { NotificationSettingsProvider } from '../context/NotificationSettingsCon
 import BackendAPIService from '../services/BackendAPIService';
 import { ListViewCommandSetContext } from '@microsoft/sp-listview-extensibility';
 import { NotificationRegistration } from '../models/NotificationRegistration';
+import { IConfiguration } from '../models/Configuration';
 
 
 const useStyles = makeStyles({
@@ -21,9 +22,10 @@ const useStyles = makeStyles({
 export interface ISPONotificationProps {
     spoContext: ListViewCommandSetContext
     onClose: () => void;
+    configuration: IConfiguration;
 }
 
-const SPONotification: React.FC<ISPONotificationProps> = ({ spoContext, onClose }) => {
+const SPONotification: React.FC<ISPONotificationProps> = ({ spoContext, onClose, configuration }) => {
     const [dialogOpen, setDialogOpen] = React.useState(true);
     const [selectedTab, setSelectedTab] = React.useState<TabValue>('settings');
     const context = useApplicationContext();
@@ -31,8 +33,8 @@ const SPONotification: React.FC<ISPONotificationProps> = ({ spoContext, onClose 
     const onSave = () => {
         // TODO: call backend API to save the settings (get the service URL from admin context)
         const backendService = BackendAPIService.init(
-            'https://spo-notifications-api.azurewebsites.net/api/', 
-            spoContext
+            spoContext,
+            configuration
         );
         backendService.createRegistration({/* pass the settings from context */} as NotificationRegistration)
         // setDialogOpen(false);

@@ -26,6 +26,18 @@
           }
         }
       }
+    },
+    "Tobias": {
+      "pageUrl": "https://{tenantDomain}/SitePages/myPage.aspx",
+      "customActions": {
+        "41c2dfe1-049c-449b-9e78-d57819512652": {
+          "location": "ClientSideExtension.ListViewCommandSet.CommandBar",
+          "properties": {
+            "AZURE_FUNCTION_BASE_URL": "https://spo-notifications-api.azurewebsites.net/api/",
+            "AZURE_FUNCTION_CLIENT_ID": "d1b0cbb7-8c9e-4a3b-9cbd-1c3fddbfaa5b"
+          }
+        }
+      }
     }
   }
 }
