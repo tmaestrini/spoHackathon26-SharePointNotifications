@@ -1,11 +1,11 @@
-import { InputField, StackV2, TypographyControl } from '@spteck/react-controls-v2';
-import * as React from 'react'; import { Dropdown, Option, OptionOnSelectData, Radio, RadioGroup, RadioGroupOnChangeData } from '@fluentui/react-components';
+import { InputField } from '@spteck/react-controls-v2';
+import * as React from 'react'; import { Dropdown, Option, OptionOnSelectData, Radio, RadioGroup, RadioGroupOnChangeData, SelectionEvents } from '@fluentui/react-components';
 import ConfigItem from './ConfigItem';
 import { ChangeType, NotificationChannel } from '../models/NotificationRegistration';
 import { useNotificationContext } from '../context/NotificationSettingsContext';
 
 const NotificationSettings: React.FC = () => {
-    const { changeSetting, notificationSettings } = useNotificationContext();
+    const { changeSetting } = useNotificationContext();
 
     return (
         <>
@@ -27,7 +27,7 @@ const NotificationSettings: React.FC = () => {
                 <Dropdown
                     multiselect
                     placeholder="Select the channel"
-                    onOptionSelect={(_: any, data: OptionOnSelectData) => changeSetting({ deliveryMethod: [data.optionValue as NotificationChannel] })}>
+                    onOptionSelect={(_: SelectionEvents, data: OptionOnSelectData) => changeSetting({ deliveryMethod: [data.optionValue as NotificationChannel] })}>
                     <Option key={NotificationChannel.Email}>Email</Option>
                     <Option key={NotificationChannel.Teams}>Microsoft Teams (Chat)</Option>
                     {/* <Option key={NotificationChannel.TeamsChannel}>Microsoft Teams Channel</Option> */}
@@ -37,7 +37,7 @@ const NotificationSettings: React.FC = () => {
             <ConfigItem title="Change Type"
                 label="Specify the type of changes that you want to be alerted to.">
                 <RadioGroup
-                    onChange={(_: any, data: RadioGroupOnChangeData) => changeSetting({ changeType: data.value as ChangeType })}>
+                    onChange={(_: React.FormEvent, data: RadioGroupOnChangeData) => changeSetting({ changeType: data.value as ChangeType })}>
                     <Radio value={ChangeType.ALL} label="All changes" />
                     <Radio value={ChangeType.CREATED} label="New items are added" />
                     <Radio value={ChangeType.UPDATED} label="Existing items are modified" />

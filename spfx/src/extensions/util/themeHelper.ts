@@ -1,9 +1,9 @@
 import { ITheme, getTheme } from '@fluentui/react';
 
 const ThemeState = (<any>window).__themeState__;
-​
+
 // Get theme from global UI fabric state object if exists, if not fall back to using uifabric    
-export function getThemeColor(slot: string) {
+export function getThemeColor(slot: string): any {
     if (ThemeState && ThemeState.theme && ThemeState.theme[slot]) {
         return ThemeState.theme[slot];
     }

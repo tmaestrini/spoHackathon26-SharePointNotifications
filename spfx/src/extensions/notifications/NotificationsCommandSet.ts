@@ -1,5 +1,4 @@
 import { Log } from '@microsoft/sp-core-library';
-import * as React from 'react';
 import {
   BaseListViewCommandSet,
   Command,
@@ -44,6 +43,7 @@ export default class NotificationsCommandSet extends BaseListViewCommandSet<INot
       console.error('Azure Function configuration is missing.');
       Dialog.alert('NotificationsCommandSet - Azure Function configuration is missing. Please check the configuration and try again.');
     }
+
     return Promise.resolve();
   }
 

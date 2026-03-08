@@ -1,4 +1,4 @@
-import { RenderDialog, set, StackV2, TypographyControl, useApplicationContext } from '@spteck/react-controls-v2';
+import { RenderDialog, StackV2, TypographyControl, useApplicationContext } from '@spteck/react-controls-v2';
 import * as React from 'react'; import {
     Warning24Regular, Info24Regular,
     DismissCircle24Regular,
@@ -32,7 +32,7 @@ const SPONotification: React.FC<ISPONotificationProps> = ({ spoContext, onClose,
     const [selectedTab, setSelectedTab] = React.useState<TabValue>('settings');
     const [errorMessage, setErrorMessage] = React.useState<string | undefined>(undefined);
     
-    const onSave = async () => {
+    const onSave = async (): Promise<void> => {
         // TODO: call backend API to save the settings (get the service URL from admin context)
         const backendService = BackendAPIService.init(
             spoContext,
