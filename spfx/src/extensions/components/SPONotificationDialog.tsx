@@ -6,6 +6,7 @@ import { FluentProvider, webLightTheme, webDarkTheme, IdPrefixProvider } from '@
 import SPONotification from './SPONotification';
 import ReactDOM from 'react-dom';
 import { IConfiguration } from '../models/Configuration';
+import { NotificationSettingsProvider } from '../context/NotificationSettingsContext';
 
 export default class SPONotificationDialog {
     private container: HTMLDivElement;
@@ -22,12 +23,14 @@ export default class SPONotificationDialog {
         document.body.appendChild(this.container);
         const appContext = SPFxContextAdapter.adapt(this.context, 'SPONotificationDialog');
         const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        
+
         ReactDOM.render(
             <IdPrefixProvider value="spo-notification-">
                 <FluentProvider theme={isDark ? webDarkTheme : webLightTheme}>
                     <UniversalProvider context={appContext as any}>
-                        <SPONotification onClose={() => this.close()} spoContext={this.context} configuration={this.configuration} />
+                        <NotificationSettingsProvider>
+                            <SPONotification onClose={() => this.close()} spoContext={this.context} configuration={this.configuration} />
+                        </NotificationSettingsProvider>
                     </UniversalProvider>
                 </FluentProvider>
             </IdPrefixProvider>,
