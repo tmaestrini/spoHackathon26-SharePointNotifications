@@ -4,7 +4,7 @@ import { NotificationChannel, ChangeType } from '../models/NotificationRegistrat
 
 export type NotificationSettings = {
     title?: string | number;
-    recipientAddress?: string;
+    recipientId?: string;
     deliveryMethod?: NotificationChannel[];
     changeType?: ChangeType;
 }
