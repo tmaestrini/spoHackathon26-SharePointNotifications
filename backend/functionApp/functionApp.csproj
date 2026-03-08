@@ -9,21 +9,33 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Functions\NewFolder\**" />
+    <Compile Remove="Models\NewFolder\**" />
+    <EmbeddedResource Remove="Functions\NewFolder\**" />
+    <EmbeddedResource Remove="Models\NewFolder\**" />
+    <None Remove="Functions\NewFolder\**" />
+    <None Remove="Models\NewFolder\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="local.settings - template.json" />
+    <Content Include="local.settings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Azure.Data.Tables" Version="12.11.0" />
+    <PackageReference Include="Azure.Identity" Version="1.17.0" />
     <PackageReference Include="Azure.Security.KeyVault.Certificates" Version="4.8.0" />
+    <PackageReference Include="Azure.Storage.Queues" Version="12.21.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.WorkerService" Version="2.23.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.51.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.ApplicationInsights" Version="2.50.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="2.1.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.7" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues" Version="5.5.0" />
     <PackageReference Include="Microsoft.Graph" Version="5.103.0" />
     <PackageReference Include="PnP.Framework" Version="1.18.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Functions\NewFolder\" />
-    <Folder Include="Models\NewFolder\" />
   </ItemGroup>
 
 </Project>

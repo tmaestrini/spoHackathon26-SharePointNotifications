@@ -17,6 +17,8 @@ public class NotificationRegistryService
         _logger.LogInformation("NotificationRegistryService initialized with table '{TableName}'.", env.TableNotificationRegistrations);
     }
 
+    public TableClient GetTableClient() => _tableClient;
+
     public async Task<NotificationRegistration> CreateAsync(NotificationRegistration registration)
     {
         if (registration.Id == Guid.Empty)

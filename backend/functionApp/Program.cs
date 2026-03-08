@@ -1,6 +1,7 @@
 using functionApp.Models;
 using functionApp.Services;
 using Azure.Data.Tables;
+using Azure.Storage.Queues;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,5 +21,12 @@ builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<A
 var storageConnectionString = builder.Configuration["AzureWebJobsStorage"] ?? "UseDevelopmentStorage=true";
 builder.Services.AddSingleton(new TableServiceClient(storageConnectionString));
 builder.Services.AddSingleton<NotificationRegistryService>();
+
+// Register Queue Storage for notification processing
+builder.Services.AddSingleton(new QueueServiceClient(storageConnectionString));
+
+// Register HttpClient and SharePointService
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton<DataService>();
 
 builder.Build().Run();

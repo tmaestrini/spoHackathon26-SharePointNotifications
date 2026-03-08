@@ -15,6 +15,9 @@ namespace functionApp.Models
         public string? VaultCertName { get; set; }
         public string? AzureWebJobsStorage { get; internal set; }
         public string? TableNotificationRegistrations { get; set; }
+        public string? NotificationQueueName { get; set; }
+        public string? SharePointTenantName { get; set; }
+        public string? CertThumbprint { get; set; }
 
         private string this[string prop]
         {
