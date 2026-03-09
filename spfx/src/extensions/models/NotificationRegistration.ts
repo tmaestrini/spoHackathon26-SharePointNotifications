@@ -6,6 +6,7 @@ export type NotificationRegistration = {
     userId: UUID; //ENTRA ID
     changeType: ChangeType;
     siteId: UUID;
+    siteUrl: string;
     webId: UUID;
     siteUrl: SiteUrl;
     listId: UUID;
