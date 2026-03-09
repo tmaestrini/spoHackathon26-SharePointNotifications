@@ -43,8 +43,8 @@ public class WebhookService
             ctx.Load(list);
             await ctx.ExecuteQueryAsync();
 
-            // Register the webhook subscription (expirationInMonths: 6 months, close to SharePoint's 180-day max)
-            var subscription = list.AddWebhookSubscription(_appSettings.WebhookUrl, 6);
+            // Register the webhook subscription (expirationInMonths: 4 months, close to SharePoint's 180-day max)
+            var subscription = list.AddWebhookSubscription(_appSettings.WebhookUrl, 4);
             await ctx.ExecuteQueryAsync();
 
             if (subscription != null)
