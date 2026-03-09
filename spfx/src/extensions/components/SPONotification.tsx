@@ -6,10 +6,9 @@ import * as React from 'react'; import {
 } from '@fluentui/react-icons';
 import { Button, makeStyles, SelectTabData, Tab, TabList, TabValue, tokens } from '@fluentui/react-components';
 import NotificationSettings from './NotificationSettings';
-import { NotificationSettingsProvider, useNotificationContext } from '../context/NotificationSettingsContext';
+import { useNotificationContext } from '../context/NotificationSettingsContext';
 import BackendAPIService from '../services/BackendAPIService';
 import { ListViewCommandSetContext } from '@microsoft/sp-listview-extensibility';
-import { NotificationRegistration } from '../models/NotificationRegistration';
 import { IConfiguration } from '../models/Configuration';
 
 
@@ -27,7 +26,7 @@ export interface ISPONotificationProps {
 
 const SPONotification: React.FC<ISPONotificationProps> = ({ spoContext, onClose, configuration }) => {
     const context = useApplicationContext();
-    const { notificationObject } = useNotificationContext();
+    const { notificationObject: registration } = useNotificationContext();
 
     const [dialogOpen, setDialogOpen] = React.useState(true);
     const [selectedTab, setSelectedTab] = React.useState<TabValue>('settings');
@@ -40,7 +39,7 @@ const SPONotification: React.FC<ISPONotificationProps> = ({ spoContext, onClose,
             configuration
         );
         try {
-            await backendService.createRegistration(notificationObject)
+            await backendService.createRegistration(registration)
             // setDialogOpen(false);
             // onClose();
         } catch (error) {
