@@ -57,7 +57,35 @@ namespace functionApp.Helpers
 
                 // Retrieve fresh certificate
                 logging?.LogInformation("Certificate cache empty or expired, retrieving new certificate");
+
+#if DEBUG
+                // TODO: remove
+                // *** TEMPORARY **************************************************
+                // Use this for local development.
+                // This will be removed when an Azure Key Vault will be available.
+                // ****************************************************************
+
+                // Load the certificate from the current user certificates
+                using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
+                {
+                    store.Open(OpenFlags.ReadOnly);
+                    
+                    // Find certificate by thumbprint (recommended)
+                    var certs = store.Certificates.Find(X509FindType.FindByThumbprint, env.CertThumbprint, false);
+                    
+                    if (certs.Count == 0)
+                    {
+                        logging?.LogError("Certificate with thumbprint {thumbprint} not found in current user store", env.CertThumbprint);
+                        throw new Exception($"Certificate with thumbprint {env.CertThumbprint} not found in current user certificate store");
+                    }
+                    
+                    _cachedCertificate = certs[0];
+                    logging?.LogInformation("Certificate loaded from current user store. Subject: {subject}", _cachedCertificate.Subject);
+                }
+#else
                 _cachedCertificate = env.GetCertificateFromKeyVault(logging);
+#endif
+
                 _certificateRetrievalTime = DateTime.UtcNow;
 
                 return _cachedCertificate;
