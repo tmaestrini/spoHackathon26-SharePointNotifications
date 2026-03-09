@@ -30,7 +30,7 @@ export const NotificationSettingsProvider: React.FC<{ children: React.ReactNode 
 
     const notificationObject: NotificationRegistration = {
         changeType: notificationSettings.changeType || ChangeType.ALL,
-        userId: notificationSettings.recipientAddress || application?.pageContext?.aadInfo?.userId || "",
+        userId: notificationSettings.recipientId || application?.pageContext?.aadInfo?.userId || "",
         siteId: application?.pageContext?.site?.id || "",
         siteUrl: application?.pageContext?.site?.absoluteUrl || "",
         webId: application?.pageContext?.web?.id || "",

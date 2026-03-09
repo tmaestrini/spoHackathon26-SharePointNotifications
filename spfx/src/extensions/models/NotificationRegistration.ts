@@ -1,5 +1,4 @@
 export type UUID = string;
-export type SiteUrl = string;
 
 export type NotificationRegistration = {
     id?: UUID;
@@ -8,7 +7,6 @@ export type NotificationRegistration = {
     siteId: UUID;
     siteUrl: string;
     webId: UUID;
-    siteUrl: SiteUrl;
     listId: UUID;
     itemId?: number;
     notificationChannel: NotificationChannel[];
