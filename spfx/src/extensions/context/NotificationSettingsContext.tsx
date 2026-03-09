@@ -32,6 +32,7 @@ export const NotificationSettingsProvider: React.FC<{ children: React.ReactNode 
         changeType: notificationSettings.changeType || ChangeType.ALL,
         userId: notificationSettings.recipientAddress || application?.pageContext?.aadInfo?.userId || "",
         siteId: application?.pageContext?.site?.id || "",
+        siteUrl: application?.pageContext?.site?.absoluteUrl || "",
         webId: application?.pageContext?.web?.id || "",
         listId: application?.pageContext?.list?.id || "",
         notificationChannel: notificationSettings.deliveryMethod || [],
