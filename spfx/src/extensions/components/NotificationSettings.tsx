@@ -1,4 +1,4 @@
-import { InputField, ItemPicker } from '@spteck/react-controls-v2';
+import { InputField, ItemPicker, useApplicationContext } from '@spteck/react-controls-v2';
 import * as React from 'react'; import { Dropdown, Option, OptionOnSelectData, Radio, RadioGroup, RadioGroupOnChangeData, SelectionEvents } from '@fluentui/react-components';
 import ConfigItem from './ConfigItem';
 import { ChangeType, NotificationChannel } from '../models/NotificationRegistration';
@@ -7,6 +7,7 @@ import { PeoplePicker } from './PeoplePicker';
 
 const NotificationSettings: React.FC = (props) => {
     const { changeSetting } = useNotificationContext();
+    const context = useApplicationContext();
 
     return (
         <>
@@ -19,11 +20,12 @@ const NotificationSettings: React.FC = (props) => {
 
             <ConfigItem title="Send Alerts To"
                 label="You can enter user names or email addresses. Separate them with semicolons">
-                <PeoplePicker              
-                    placeholder="Set the email addresses of the recipients"
+                <PeoplePicker
+                    placeholder="Select recipient"
                     maxSelectedOptions={1}
+                    defaultSelectedIds={context?.pageContext?.user?.userId ? [context.pageContext.user.userId] : undefined}
                     onPeopleChange={(val) => {
-                        changeSetting({recipientId: val[0] ?? null})
+                        changeSetting({ recipientId: val[0] ?? null })
                     }}
                 />
             </ConfigItem>
