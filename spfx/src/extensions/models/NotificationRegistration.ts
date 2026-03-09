@@ -1,7 +1,7 @@
 export type UUID = string;
 
 export type NotificationRegistration = {
-    id: UUID;
+    id?: UUID;
     userId: UUID; //ENTRA ID
     changeType: ChangeType;
     siteId: UUID;
