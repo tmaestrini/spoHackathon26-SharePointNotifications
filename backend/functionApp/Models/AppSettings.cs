@@ -18,6 +18,8 @@ namespace functionApp.Models
         public string? NotificationQueueName { get; set; }
         public string? SharePointTenantName { get; set; }
         public string? CertThumbprint { get; set; }
+        public string? WebhookUrl { get; set; }
+        public string? TableWebhookSubscriptions { get; set; }
 
         private string this[string prop]
         {

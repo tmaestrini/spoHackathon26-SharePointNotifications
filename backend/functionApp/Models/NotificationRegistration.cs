@@ -24,6 +24,7 @@ public class NotificationRegistration
     public Guid SiteId { get; set; }
     public Guid WebId { get; set; }
     public Guid ListId { get; set; }
+    public string? SiteUrl { get; set; }
     public int? ItemId { get; set; }
     public NotificationChannel[] NotificationChannels { get; set; } = [];
     public string? Description { get; set; }
