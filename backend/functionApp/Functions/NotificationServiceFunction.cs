@@ -9,20 +9,22 @@ using System.Text.Json.Serialization;
 
 namespace functionApp.Functions;
 
-public class API_Func
+public class NotificationServiceFunction
 {
-    private readonly ILogger<API_Func> _logger;
+    private readonly ILogger<NotificationServiceFunction> _logger;
     private readonly NotificationRegistryService _registryService;
+    private readonly WebhookService _webhookService;
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
         Converters = { new JsonStringEnumConverter() }
     };
 
-    public API_Func(ILogger<API_Func> logger, NotificationRegistryService registryService)
+    public NotificationServiceFunction(ILogger<NotificationServiceFunction> logger, NotificationRegistryService registryService, WebhookService webhookService)
     {
         _logger = logger;
         _registryService = registryService;
+        _webhookService = webhookService;
     }
 
     [Function("CreateRegistration")]
@@ -44,6 +46,25 @@ public class API_Func
             return new BadRequestObjectResult("At least one NotificationChannel is required.");
 
         var created = await _registryService.CreateAsync(registration);
+
+        // Register webhook on the SharePoint list/library
+        try
+        {
+            if (!string.IsNullOrEmpty(registration.SiteUrl))
+            {
+                await _webhookService.RegisterWebhookAsync(registration.SiteUrl, registration.ListId);
+            }
+            else
+            {
+                _logger.LogWarning("SiteUrl not provided in registration {Id}. Webhook was not registered.", created.Id);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to register webhook for registration {Id}. The registration was saved but the webhook was not created.", created.Id);
+            // Registration is saved; webhook failure is logged but doesn't block the response.
+        }
+
         return new CreatedResult($"/api/registrations/{created.UserId}/{created.Id}", created);
     }
 
@@ -100,7 +121,38 @@ public class API_Func
     {
         _logger.LogInformation("Deleting registration {Id} for user {UserId}.", id, userId);
 
+        // Fetch the registration first so we can remove the webhook if needed
+        var registration = await _registryService.GetAsync(userId, id);
+        if (registration is null)
+            return new NotFoundResult();
+
         var deleted = await _registryService.DeleteAsync(userId, id);
-        return deleted ? new NoContentResult() : new NotFoundResult();
+        if (!deleted)
+            return new NotFoundResult();
+
+        // Check if other registrations still exist for the same list
+        // Only remove the webhook if this was the last registration for that site+list
+        try
+        {
+            if (!string.IsNullOrEmpty(registration.SiteUrl))
+            {
+                var remaining = await _registryService.GetByListAsync(registration.SiteId, registration.WebId, registration.ListId);
+                if (remaining.Count == 0)
+                {
+                    _logger.LogInformation("No remaining registrations for list {ListId}. Removing webhook.", registration.ListId);
+                    await _webhookService.RemoveWebhookAsync(registration.SiteUrl, registration.ListId);
+                }
+                else
+                {
+                    _logger.LogInformation("{Count} registrations still exist for list {ListId}. Keeping webhook.", remaining.Count, registration.ListId);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to remove webhook for registration {Id}. The registration was deleted but the webhook may still be active.", id);
+        }
+
+        return new NoContentResult();
     }
 }

@@ -60,6 +60,19 @@ public class NotificationRegistryService
         return results;
     }
 
+    public async Task<List<NotificationRegistration>> GetByListAsync(Guid siteId, Guid webId, Guid listId)
+    {
+        _logger.LogInformation("Fetching registrations for site {SiteId}, web {WebId}, list {ListId}.", siteId, webId, listId);
+        var results = new List<NotificationRegistration>();
+        await foreach (var entity in _tableClient.QueryAsync<NotificationRegistrationEntity>(
+            e => e.SiteId == siteId && e.WebId == webId && e.ListId == listId))
+        {
+            results.Add(entity.ToModel());
+        }
+        _logger.LogInformation("Found {Count} registrations for list {ListId}.", results.Count, listId);
+        return results;
+    }
+
     public async Task<NotificationRegistration?> UpdateAsync(NotificationRegistration registration)
     {
         _logger.LogInformation("Updating registration {Id} for user {UserId}.", registration.Id, registration.UserId);

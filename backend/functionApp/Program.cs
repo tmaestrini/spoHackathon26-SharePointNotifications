@@ -28,5 +28,8 @@ builder.Services.AddSingleton(new QueueServiceClient(storageConnectionString));
 // Register HttpClient and SharePointService
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<DataService>();
+builder.Services.AddSingleton<WebhookSubscriptionService>();
+builder.Services.AddSingleton<WebhookService>();
+builder.Services.AddSingleton<AINotificationService>();
 
 builder.Build().Run();
