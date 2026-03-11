@@ -18,6 +18,11 @@ const useStyles = makeStyles({
     },
 });
 
+enum Tabs {
+    Settings = 'settings',
+    Alerts = 'alerts'
+}
+
 export interface ISPONotificationProps {
     spoContext: ListViewCommandSetContext
     onClose: () => void;
@@ -29,7 +34,7 @@ const SPONotification: React.FC<ISPONotificationProps> = ({ spoContext, onClose,
     const { notificationObject: registration } = useNotificationContext();
 
     const [dialogOpen, setDialogOpen] = React.useState(true);
-    const [selectedTab, setSelectedTab] = React.useState<TabValue>('settings');
+    const [selectedTab, setSelectedTab] = React.useState<TabValue>(Tabs.Settings);
     const [errorMessage, setErrorMessage] = React.useState<string | undefined>(undefined);
     
     const onSave = async (): Promise<void> => {
@@ -99,12 +104,13 @@ const SPONotification: React.FC<ISPONotificationProps> = ({ spoContext, onClose,
                     <TabList defaultSelectedValue={selectedTab} onTabSelect={(_, data: SelectTabData) => {
                         setSelectedTab(data.value);
                     }}>
-                        <Tab value="settings">Notification Settings</Tab>
-                        <Tab value="tab2">Alerts on this List</Tab>
+                        <Tab value={Tabs.Settings}>Notification Settings</Tab>
+                        <Tab value={Tabs.Alerts}>Alerts on this List</Tab>
                     </TabList>
 
                     <div className={styles.panels}>
-                        {selectedTab === 'settings' && <NotificationSettings />}
+                        {selectedTab === Tabs.Settings && <NotificationSettings />}
+                        {selectedTab === Tabs.Alerts && <NotificationSettings />}
                     </div>
 
                 </StackV2>
