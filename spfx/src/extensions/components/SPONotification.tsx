@@ -32,18 +32,19 @@ export interface ISPONotificationProps {
 
 const SPONotification: React.FC<ISPONotificationProps> = ({ spoContext, onClose, configuration }) => {
     const context = useApplicationContext();
-    const { notificationObject: registration } = useNotificationContext();
+    const { registration } = useNotificationContext();
 
     const [dialogOpen, setDialogOpen] = React.useState(true);
     const [selectedTab, setSelectedTab] = React.useState<TabValue>(Tabs.Settings);
     const [errorMessage, setErrorMessage] = React.useState<string | undefined>(undefined);
 
+    const backendService = BackendAPIService.init(
+        spoContext,
+        configuration
+    );
+
     const onSave = async (): Promise<void> => {
         // TODO: call backend API to save the settings (get the service URL from admin context)
-        const backendService = BackendAPIService.init(
-            spoContext,
-            configuration
-        );
         try {
             await backendService.createRegistration(registration)
             // setDialogOpen(false);

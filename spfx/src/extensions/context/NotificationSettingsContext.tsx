@@ -13,7 +13,7 @@ export type NotificationSettings = {
 export interface INotificationSettingsContext {
     changeSetting: (setting: Partial<NotificationSettings>) => void;
     notificationSettings: NotificationSettings;
-    notificationObject: NotificationRegistration;
+    registration: NotificationRegistration;
 }
 
 const NotificationSettingsContext = React.createContext<INotificationSettingsContext | undefined>(undefined);
@@ -26,7 +26,7 @@ export const NotificationSettingsProvider: React.FC<{ children: React.ReactNode 
         setNotificationSettings(prev => ({ ...prev, ...setting }));
     };
 
-    const notificationObject: NotificationRegistration = {
+    const registration: NotificationRegistration = {
         changeType: notificationSettings.changeType || ChangeType.ALL,
         userId: notificationSettings.recipientId || application?.pageContext?.aadInfo?.userId || "",
         siteId: application?.pageContext?.site?.id || "",
@@ -38,7 +38,7 @@ export const NotificationSettingsProvider: React.FC<{ children: React.ReactNode 
     }
 
     return (
-        <NotificationSettingsContext.Provider value={{ changeSetting, notificationSettings, notificationObject }}>
+        <NotificationSettingsContext.Provider value={{ changeSetting, notificationSettings, registration }}>
             {children}
         </NotificationSettingsContext.Provider>
     );
