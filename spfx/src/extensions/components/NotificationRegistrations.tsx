@@ -1,10 +1,11 @@
-import React, { CSSProperties } from "react";
+import React, { CSSProperties, useEffect } from "react";
 import {
     DeleteRegular,
 } from "@fluentui/react-icons";
 import {
     Badge,
     Button,
+    Spinner,
     Table,
     TableBody,
     TableHeader,
@@ -13,36 +14,59 @@ import {
 } from "@fluentui/react-components";
 import { ChangeType, NotificationChannel, NotificationRegistration } from "../models/NotificationRegistration";
 
+
 type NotificationItem = Required<Pick<NotificationRegistration, 'id' | 'description' | 'notificationChannel' | 'changeType'>>;
 
 const NotificationRegistrations: React.FC = () => {
+    const [isLoading, setIsLoading] = React.useState<boolean>(true);
+    const [registrations, setRegistrations] = React.useState<NotificationItem[]>([]);
 
-    const items: NotificationItem[] = [
-        {
-            id: '1',
-            description: "Notification for item created",
-            notificationChannel: [NotificationChannel.Email],
-            changeType: ChangeType.CREATED
-        },
-        {
-            'id': '2',
-            description: "Notification for item updated",
-            notificationChannel: [NotificationChannel.Teams],
-            changeType: ChangeType.UPDATED
-        },
-        {
-            id: '3',
-            description: "Notification for item deleted",
-            notificationChannel: [NotificationChannel.Teams],
-            changeType: ChangeType.DELETED
-        },
-        {
-            id: '4',
-            description: "Notification for all changes",
-            notificationChannel: [NotificationChannel.Email, NotificationChannel.Teams],
-            changeType: ChangeType.ALL
+    useEffect(() => {
+        // TODO: call backend API to get the list of notification registrations (get the service URL from admin context)
+        loadRegistrations()
+    }, []);
+
+    const loadRegistrations = async () => {
+        const mockData: NotificationItem[] = [
+            {
+                id: '1',
+                description: "Notification for item created",
+                notificationChannel: [NotificationChannel.Email],
+                changeType: ChangeType.CREATED
+            },
+            {
+                'id': '2',
+                description: "Notification for item updated",
+                notificationChannel: [NotificationChannel.Teams],
+                changeType: ChangeType.UPDATED
+            },
+            {
+                id: '3',
+                description: "Notification for item deleted",
+                notificationChannel: [NotificationChannel.Teams],
+                changeType: ChangeType.DELETED
+            },
+            {
+                id: '4',
+                description: "Notification for all changes",
+                notificationChannel: [NotificationChannel.Email, NotificationChannel.Teams],
+                changeType: ChangeType.ALL
+            }
+        ];
+        setIsLoading(true);
+        // TODO: replace mock data with actual data from backend API
+        setRegistrations(mockData);
+        // TODO: remove lazy loading simulation and set loading to false after data is loaded
+        setTimeout(() => setIsLoading(false), Math.random() * 2600 + Math.random() * 400);
+    };
+
+    const deleteRegistration = async (id: string): Promise<void> => {
+        try {
+            setRegistrations(prev => prev.filter(reg => reg.id !== id));
+        } catch (error) {
+            console.error(`Failed to delete registration with id ${id}:`, error);
         }
-    ];
+    }
 
     const columns: { columnId: string, label: string, style?: CSSProperties }[] = [
         { columnId: 'description', label: 'Title', style: { fontWeight: 600 } },
@@ -52,29 +76,34 @@ const NotificationRegistrations: React.FC = () => {
     ];
 
     return (
-        <Table size="small">
-            <TableHeader>
-                <TableRow>
-                    {columns.map(column => (
-                        <TableHeaderCell key={column.columnId} style={column.style}>{column.label}</TableHeaderCell>
-                    ))}
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {items.map((item, index) => (
-                    <TableRow key={index}>
-                        <TableHeaderCell>{item.description}</TableHeaderCell>
-                        <TableHeaderCell><Badge appearance="outline" color="informative" shape="rounded">{item.changeType}</Badge></TableHeaderCell>
-                        <TableHeaderCell>{item.notificationChannel.join(', ')}</TableHeaderCell>
-                        <TableHeaderCell>
-                            <Button appearance="subtle" size="small" icon={<DeleteRegular />}
-                            onClick={() => {}}
-                            />
-                        </TableHeaderCell>
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>
+        <>
+            {isLoading && <Spinner size="tiny" labelPosition="below" label="Loading registered notifications..."></Spinner>}
+            {!isLoading &&
+                <Table size="small">
+                    <TableHeader>
+                        <TableRow>
+                            {columns.map(column => (
+                                <TableHeaderCell key={column.columnId} style={column.style}>{column.label}</TableHeaderCell>
+                            ))}
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {registrations && registrations.map((item: NotificationItem, index) => (
+                            <TableRow key={index}>
+                                <TableHeaderCell>{item.description}</TableHeaderCell>
+                                <TableHeaderCell><Badge appearance="outline" color="informative" shape="rounded">{item.changeType}</Badge></TableHeaderCell>
+                                <TableHeaderCell>{item.notificationChannel.join(', ')}</TableHeaderCell>
+                                <TableHeaderCell>
+                                    <Button appearance="subtle" size="small" icon={<DeleteRegular />}
+                                        onClick={() => deleteRegistration(item.id)}
+                                    />
+                                </TableHeaderCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            }
+        </>
     );
 }
 
