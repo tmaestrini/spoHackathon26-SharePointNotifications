@@ -48,7 +48,7 @@ export default class BackendAPIService {
             body: body && JSON.stringify(body)
         });
 
-        if(!response || !response.ok) {
+        if (!response || !response.ok) {
             console.error('API request failed:', response);
             return Promise.reject('API request failed');
         }
@@ -56,10 +56,45 @@ export default class BackendAPIService {
         return response;
     }
 
+    public async deleteRegistration(id: string): Promise<BackendAPIServiceResponse> {
+        try {
+            await this.query(`registrations/${encodeURIComponent(id)}`, 'DELETE');
+            return Promise.resolve({
+                status: 200,
+                result: 'success',
+                message: 'Notification registration deleted successfully.'
+            });
+        } catch (error) {
+            console.error('Error deleting notification registration:', error);
+            return Promise.reject({
+                status: 500,
+                result: 'error',
+                message: `An error occurred while deleting the notification registration: (${error})`
+            });
+        }
+    }
+
+    public async loadRegistrations(): Promise<NotificationRegistration[]> {
+        try {
+            const response = await this.query('registrations', 'GET');
+            const data = await response.json();
+            console.log('API response for loading registrations:', data);
+            return Promise.resolve(data as NotificationRegistration[]);
+        } catch (error) {
+            console.error('Error loading notification registrations:', error);
+            return Promise.reject({
+                status: 500,
+                result: 'error',
+                message: `An error occurred while loading notification registrations: (${error})`
+            });
+        }
+    }
+
     public async createRegistration(registration: NotificationRegistration): Promise<BackendAPIServiceResponse> {
         try {
+            console.log('Creating notification registration with data:', registration);
             const response = await this.query('registrations', 'POST', registration);
-            
+
             if (!response) {
                 throw new Error('Failed to get response from API.');
             }
