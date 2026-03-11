@@ -28,12 +28,12 @@ export default class SPONotificationDialog {
             <IdPrefixProvider value="spo-notification-">
                 <FluentProvider theme={isDark ? webDarkTheme : webLightTheme}>
                     <UniversalProvider context={appContext as any}>
-                        <NotificationSettingsProvider>
-                            <SPONotification onClose={() => this.close()} spoContext={this.context} configuration={this.configuration} />
+                        <NotificationSettingsProvider spoContext={this.context} configuration={this.configuration}>
+                            <SPONotification onClose={() => this.close()} />
                         </NotificationSettingsProvider>
                     </UniversalProvider>
                 </FluentProvider>
-            </IdPrefixProvider>,
+            </IdPrefixProvider >,
             this.container
         );
         return Promise.resolve();

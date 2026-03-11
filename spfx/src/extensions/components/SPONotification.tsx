@@ -25,23 +25,16 @@ enum Tabs {
 }
 
 export interface ISPONotificationProps {
-    spoContext: ListViewCommandSetContext
     onClose: () => void;
-    configuration: IConfiguration;
 }
 
-const SPONotification: React.FC<ISPONotificationProps> = ({ spoContext, onClose, configuration }) => {
+const SPONotification: React.FC<ISPONotificationProps> = ({ onClose }) => {
     const context = useApplicationContext();
-    const { registration } = useNotificationContext();
+    const { registration, backendService } = useNotificationContext();
 
     const [dialogOpen, setDialogOpen] = React.useState(true);
     const [selectedTab, setSelectedTab] = React.useState<TabValue>(Tabs.Settings);
     const [errorMessage, setErrorMessage] = React.useState<string | undefined>(undefined);
-
-    const backendService = BackendAPIService.init(
-        spoContext,
-        configuration
-    );
 
     const onSave = async (): Promise<void> => {
         // TODO: call backend API to save the settings (get the service URL from admin context)
@@ -52,6 +45,16 @@ const SPONotification: React.FC<ISPONotificationProps> = ({ spoContext, onClose,
         } catch (error) {
             setErrorMessage(error instanceof Error ? error.message : 'Failed to save notification settings');
             console.error('Failed to save notification settings:', error);
+        }
+    }
+
+    const onDeleteRegistration = async (id: string): Promise<void> => {
+        // TODO: call backend API to delete the registration (get the service URL from admin context)
+        try {
+            await backendService.deleteRegistration(id);
+        } catch (error) {
+            setErrorMessage(error instanceof Error ? error.message : 'Failed to delete notification registration');
+            console.error(`Failed to delete notification registration with id ${id}:`, error);
         }
     }
 
@@ -120,7 +123,7 @@ const SPONotification: React.FC<ISPONotificationProps> = ({ spoContext, onClose,
 
                 <div className={styles.panels}>
                     {selectedTab === Tabs.Settings && <NotificationSettings />}
-                    {selectedTab === Tabs.Alerts && <NotificationRegistrations />}
+                    {selectedTab === Tabs.Alerts && <NotificationRegistrations {...onDeleteRegistration} />}
                 </div>
 
             </StackV2>

@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { NotificationChannel, ChangeType, NotificationRegistration } from '../models/NotificationRegistration';
 import { useApplicationContext } from '@spteck/react-controls-v2';
+import BackendAPIService from '../services/BackendAPIService';
+import { ListViewCommandSetContext } from '@microsoft/sp-listview-extensibility';
+import { IConfiguration } from '../models/Configuration';
 
 
 export type NotificationSettings = {
@@ -14,13 +17,23 @@ export interface INotificationSettingsContext {
     changeSetting: (setting: Partial<NotificationSettings>) => void;
     notificationSettings: NotificationSettings;
     registration: NotificationRegistration;
+    backendService: BackendAPIService;
 }
 
 const NotificationSettingsContext = React.createContext<INotificationSettingsContext | undefined>(undefined);
 
-export const NotificationSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const NotificationSettingsProvider: React.FC<{
+    spoContext: ListViewCommandSetContext,
+    configuration: IConfiguration,
+    children: React.ReactNode
+}> = ({ spoContext, configuration, children }) => {
     const application = useApplicationContext();
     const [notificationSettings, setNotificationSettings] = React.useState<NotificationSettings>({});
+
+    const backendService = BackendAPIService.init(
+        spoContext,
+        configuration
+    );
 
     const changeSetting = (setting: Partial<NotificationSettings>): void => {
         setNotificationSettings(prev => ({ ...prev, ...setting }));
@@ -38,7 +51,7 @@ export const NotificationSettingsProvider: React.FC<{ children: React.ReactNode 
     }
 
     return (
-        <NotificationSettingsContext.Provider value={{ changeSetting, notificationSettings, registration }}>
+        <NotificationSettingsContext.Provider value={{ changeSetting, notificationSettings, registration, backendService }}>
             {children}
         </NotificationSettingsContext.Provider>
     );
