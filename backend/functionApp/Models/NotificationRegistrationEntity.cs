@@ -15,6 +15,7 @@ public class NotificationRegistrationEntity : ITableEntity
     public Guid SiteId { get; set; }
     public Guid WebId { get; set; }
     public Guid ListId { get; set; }
+    public string? SiteUrl { get; set; }
     public int? ItemId { get; set; }
     public string NotificationChannelsJson { get; set; } = "[]";
     public string? Description { get; set; }
@@ -29,6 +30,7 @@ public class NotificationRegistrationEntity : ITableEntity
             SiteId = model.SiteId,
             WebId = model.WebId,
             ListId = model.ListId,
+            SiteUrl = model.SiteUrl,
             ItemId = model.ItemId,
             NotificationChannelsJson = JsonSerializer.Serialize(model.NotificationChannels),
             Description = model.Description
@@ -45,6 +47,7 @@ public class NotificationRegistrationEntity : ITableEntity
             SiteId = SiteId,
             WebId = WebId,
             ListId = ListId,
+            SiteUrl = SiteUrl,
             ItemId = ItemId,
             NotificationChannels = JsonSerializer.Deserialize<NotificationChannel[]>(NotificationChannelsJson) ?? [],
             Description = Description
