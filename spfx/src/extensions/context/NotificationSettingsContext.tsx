@@ -20,9 +20,7 @@ const NotificationSettingsContext = React.createContext<INotificationSettingsCon
 
 export const NotificationSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const application = useApplicationContext();
-    const [notificationSettings, setNotificationSettings] = React.useState<NotificationSettings>({
-        
-    });
+    const [notificationSettings, setNotificationSettings] = React.useState<NotificationSettings>({});
 
     const changeSetting = (setting: Partial<NotificationSettings>): void => {
         setNotificationSettings(prev => ({ ...prev, ...setting }));

@@ -9,7 +9,6 @@ import {
     TableBody,
     TableHeader,
     TableHeaderCell,
-    TableHeaderCellProps,
     TableRow
 } from "@fluentui/react-components";
 import { ChangeType, NotificationChannel, NotificationRegistration } from "../models/NotificationRegistration";
