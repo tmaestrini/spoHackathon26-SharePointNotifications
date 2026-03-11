@@ -20,14 +20,14 @@ type NotificationItem = Required<Pick<NotificationRegistration, 'id' | 'descript
 
 const NotificationRegistrations: React.FC = () => {
     const { backendService } = useNotificationContext();
-    
+
     const [isLoading, setIsLoading] = React.useState<boolean>(true);
     const [registrations, setRegistrations] = React.useState<NotificationItem[]>([]);
 
     useEffect(() => {
         loadRegistrations();
     }, []);
-    
+
     const loadRegistrations = async () => {
         try {
             // TODO: call backend API to get the list of notification registrations and convert them to NotificationItem type (get the service URL from admin context)
@@ -74,7 +74,19 @@ const NotificationRegistrations: React.FC = () => {
 
     const deleteRegistration = async (id: string): Promise<void> => {
         try {
-            setRegistrations(prev => prev.filter(reg => reg.id !== id));
+            try {
+                // TODO: remove this inner try-catch block for production
+                try {
+                    await backendService.deleteRegistration(id);
+                    console.log(`Registration with id ${id} deleted successfully.`)
+                } finally {
+                    // locally update the list of registrations after deletion due to performance reasons
+                    setRegistrations(prev => prev.filter(reg => reg.id !== id));
+                    // TODO: discuss consider re-fetching the list from backend after deletion to ensure data consistency
+                }
+            } catch (error) {
+                console.error(`Failed to delete registration with id ${id}:`, error);
+            }
         } catch (error) {
             console.error(`Failed to delete registration with id ${id}:`, error);
         }
