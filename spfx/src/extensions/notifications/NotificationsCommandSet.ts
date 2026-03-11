@@ -39,9 +39,10 @@ export default class NotificationsCommandSet extends BaseListViewCommandSet<INot
       command.iconImageUrl = svg;
     }
 
-    if(this.properties.AZURE_FUNCTION_BASE_URL == null || this.properties.AZURE_FUNCTION_CLIENT_ID == null) {
+    if (this.properties.AZURE_FUNCTION_BASE_URL === null || this.properties.AZURE_FUNCTION_CLIENT_ID === null) {
       console.error('Azure Function configuration is missing.');
-      Dialog.alert('NotificationsCommandSet - Azure Function configuration is missing. Please check the configuration and try again.');
+      Dialog.alert('NotificationsCommandSet - Azure Function configuration is missing. Please check the configuration and try again.')
+        .catch(error => console.error(error));
     }
 
     return Promise.resolve();

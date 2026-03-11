@@ -52,10 +52,12 @@ export const PeoplePicker: React.FunctionComponent<IPeoplePickerProps> = (props:
         }
 
         if (props.defaultSelectedIds && props.defaultSelectedIds.length > 0) {
-            loadInitialSelections();
+            loadInitialSelections()
+                .catch(error => console.error('Error loading initial selections:', error));
         }
 
-        PerformSearch();
+        PerformSearch()
+            .catch(error => console.error('Error performing initial search:', error));
 
     }, []);
 
@@ -65,7 +67,8 @@ export const PeoplePicker: React.FunctionComponent<IPeoplePickerProps> = (props:
         <ItemPicker
             options={options}
             onSearchChange={(val) => {
-                PerformSearch(val);
+                PerformSearch(val)
+                    .catch(error => console.error('Error performing search:', error));
             }}
             selectedOptions={selectedOptions}
             onSelectionChange={(selectedIds) => {
