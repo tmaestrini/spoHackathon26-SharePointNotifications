@@ -13,20 +13,32 @@ import {
     TableRow
 } from "@fluentui/react-components";
 import { ChangeType, NotificationChannel, NotificationRegistration } from "../models/NotificationRegistration";
+import { useNotificationContext } from "../context/NotificationSettingsContext";
 
 
 type NotificationItem = Required<Pick<NotificationRegistration, 'id' | 'description' | 'notificationChannel' | 'changeType'>>;
 
 const NotificationRegistrations: React.FC = () => {
+    const { backendService } = useNotificationContext();
+    
     const [isLoading, setIsLoading] = React.useState<boolean>(true);
     const [registrations, setRegistrations] = React.useState<NotificationItem[]>([]);
 
     useEffect(() => {
-        // TODO: call backend API to get the list of notification registrations (get the service URL from admin context)
-        loadRegistrations()
+        loadRegistrations();
     }, []);
-
+    
     const loadRegistrations = async () => {
+        try {
+            // TODO: call backend API to get the list of notification registrations and convert them to NotificationItem type (get the service URL from admin context)
+            const registrationData: NotificationRegistration[] = await backendService.loadRegistrations();
+            console.log('Loaded registrations from backend API:', registrationData);
+        } catch (error) {
+            console.error('Failed to load notification registrations:', error);
+        }
+
+        // SIMPLE MOCK DATA FOR TESTING - REPLACE WITH API DATA
+        console.log('Loading mock notification registrations...');
         const mockData: NotificationItem[] = [
             {
                 id: '1',
