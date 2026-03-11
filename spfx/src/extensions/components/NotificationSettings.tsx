@@ -13,7 +13,7 @@ const NotificationSettings: React.FC = (props) => {
         <>
             < ConfigItem title="Alert Title"
                 label="Enter the title for this alert. This is included in the subject of the notification sent for this alert." >
-                <InputField label="" placeholder="Set the title of the notification"
+                <InputField placeholder="Set the title of the notification"
                     // onChange={(value: string | number) => setTitle(value)} />
                     onChange={(value: string | number) => changeSetting({ title: value })} />
             </ConfigItem >
@@ -46,7 +46,7 @@ const NotificationSettings: React.FC = (props) => {
                 label="Specify the type of changes that you want to be alerted to.">
                 <RadioGroup
                     onChange={(_: React.FormEvent, data: RadioGroupOnChangeData) => changeSetting({ changeType: data.value as ChangeType })}>
-                    <Radio value={ChangeType.ALL} label="All changes" />
+                    <Radio defaultChecked={true} value={ChangeType.ALL} label="All changes" />
                     <Radio value={ChangeType.CREATED} label="New items are added" />
                     <Radio value={ChangeType.UPDATED} label="Existing items are modified" />
                     <Radio value={ChangeType.DELETED} label="Existing items are deleted" />
