@@ -1,4 +1,4 @@
-import { InputField, ItemPicker, useApplicationContext } from '@spteck/react-controls-v2';
+import { InputField, useApplicationContext } from '@spteck/react-controls-v2';
 import * as React from 'react'; import { Dropdown, Option, OptionOnSelectData, Radio, RadioGroup, RadioGroupOnChangeData, SelectionEvents } from '@fluentui/react-components';
 import ConfigItem from './ConfigItem';
 import { ChangeType, NotificationChannel } from '../models/NotificationRegistration';

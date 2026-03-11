@@ -23,7 +23,7 @@ export const PeoplePicker: React.FunctionComponent<IPeoplePickerProps> = (props:
     }
 
 
-    const PerformSearch = async (searchText?: string) => {
+    const PerformSearch = async (searchText?: string)  => {
         const url = new URL(`/users`, "http://localhost");
         url.searchParams.set("$filter", `accountEnabled eq true`)
         url.searchParams.set("$top", "10");
