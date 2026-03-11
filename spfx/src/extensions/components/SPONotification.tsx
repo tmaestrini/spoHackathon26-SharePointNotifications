@@ -48,16 +48,6 @@ const SPONotification: React.FC<ISPONotificationProps> = ({ onClose }) => {
         }
     }
 
-    const onDeleteRegistration = async (id: string): Promise<void> => {
-        // TODO: call backend API to delete the registration (get the service URL from admin context)
-        try {
-            await backendService.deleteRegistration(id);
-        } catch (error) {
-            setErrorMessage(error instanceof Error ? error.message : 'Failed to delete notification registration');
-            console.error(`Failed to delete notification registration with id ${id}:`, error);
-        }
-    }
-
     const DialogActions: React.FC = () => {
         return (
             <StackV2 paddingTop="m" direction="horizontal" gap="s"
@@ -123,7 +113,7 @@ const SPONotification: React.FC<ISPONotificationProps> = ({ onClose }) => {
 
                 <div className={styles.panels}>
                     {selectedTab === Tabs.Settings && <NotificationSettings />}
-                    {selectedTab === Tabs.Alerts && <NotificationRegistrations {...onDeleteRegistration} />}
+                    {selectedTab === Tabs.Alerts && <NotificationRegistrations />}
                 </div>
 
             </StackV2>
