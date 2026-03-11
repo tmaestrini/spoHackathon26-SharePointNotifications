@@ -8,7 +8,7 @@
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,
     "developer": {
-      "name": "",
+      "name": "The Bishop's Arms",
       "websiteUrl": "",
       "privacyUrl": "",
       "termsOfUseUrl": "",
@@ -27,8 +27,8 @@
     },
     "features": [
       {
-        "title": "Application Extension - Deployment of custom action",
-        "description": "Deploys a custom action with ClientSideComponentId association",
+        "title": "SharePoint Notification",
+        "description": "Deploys a custom action to show notifications in selected SharePoint sites.",
         "id": "8c1001e6-aee6-4806-91a1-2d36042ffdfe",
         "version": "1.0.0.0",
         "assets": {
