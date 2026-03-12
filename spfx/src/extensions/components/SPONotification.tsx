@@ -44,6 +44,11 @@ const SPONotification: React.FC<ISPONotificationProps> = ({ onClose }) => {
         }
     }
 
+    const onCloseDialog = (): void => {
+        setDialogOpen(false);
+        onClose();
+    }
+
     const DialogActions: React.FC = () => {
         return (
             <StackV2 paddingTop="m" direction="horizontal" gap="s"
@@ -54,7 +59,7 @@ const SPONotification: React.FC<ISPONotificationProps> = ({ onClose }) => {
                         onClick={onSave}>Save</Button>
                 }
                 <Button appearance="secondary" icon={<DismissCircle24Regular />}
-                    onClick={() => { setDialogOpen(false); onClose(); }}>Close</Button>
+                    onClick={onCloseDialog}>Close</Button>
             </StackV2>
         )
     }
