@@ -44,8 +44,8 @@ const SPONotification: React.FC<ISPONotificationProps> = ({ onClose }) => {
         setSuccessMessage(undefined);
     }, [selectedTab]);
 
+    // simple validation to check if required fields are filled out
     React.useEffect(() => {
-        // simple validation to check if required fields are filled out
         if (registration.description && registration.description.length > 3
             && registration.userId 
             && registration.changeType 

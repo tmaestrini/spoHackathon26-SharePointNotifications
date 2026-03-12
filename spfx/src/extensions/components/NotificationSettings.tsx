@@ -8,7 +8,6 @@ import { PeoplePicker } from './PeoplePicker';
 const NotificationSettings: React.FC = (props) => {
     const { changeSetting } = useNotificationContext();
     const context = useApplicationContext();
-
     return (
         <>
             < ConfigItem title="Alert Title"
