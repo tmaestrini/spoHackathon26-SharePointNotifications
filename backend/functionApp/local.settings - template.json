@@ -11,6 +11,9 @@
     "CertThumbprint": "CERT_THUMBPRINT",
     "TableNotificationRegistrations": "NotificationRegistrations",
     "NotificationQueueName": "notifications",
-    "SharePointTenantName": "SHAREPOINT_TENANT_NAME"
+    "SharePointTenantName": "SHAREPOINT_TENANT_NAME",
+    "TableWebhookSubscriptions": "Webhooks",
+    "TableDeltas": "Deltas",
+    "WebhookUrl": "WEBHOOK_URL"
   }
 }

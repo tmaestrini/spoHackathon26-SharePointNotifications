@@ -20,6 +20,7 @@ namespace functionApp.Models
         public string? CertThumbprint { get; set; }
         public string? WebhookUrl { get; set; }
         public string? TableWebhookSubscriptions { get; set; }
+        public string? TableDeltas { get; set; }
 
         private string this[string prop]
         {
