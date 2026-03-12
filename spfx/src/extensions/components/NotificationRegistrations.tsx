@@ -25,12 +25,14 @@ const NotificationRegistrations: React.FC = () => {
     const [registrations, setRegistrations] = React.useState<NotificationItem[]>([]);
 
     useEffect(() => {
-        loadRegistrations();
+        loadRegistrations().catch(error => {
+            console.error('Error loading registrations:', error);
+            setIsLoading(false);
+        });
     }, []);
 
-    const loadRegistrations = async () => {
+    async function loadRegistrations(): Promise<void> {
         try {
-
             const registrationData: NotificationRegistration[] = await backendService.loadRegistrations();
             console.log('Loaded registrations from backend API:', registrationData);
             setRegistrations(registrationData.map(item => ({
@@ -44,16 +46,18 @@ const NotificationRegistrations: React.FC = () => {
             console.error('Failed to load notification registrations:', error);
             setIsLoading(false);
         }
-    };
+    }
 
-    const deleteRegistration = async (id: string): Promise<void> => {
+    async function deleteRegistration(id: string): Promise<void> {
         try {
             await backendService.deleteRegistration(id);
             console.log(`Registration with id ${id} deleted successfully.`)
             // locally update the list of registrations after deletion due to performance reasons
             setRegistrations(prev => prev.filter(reg => reg.id !== id));
-            //Refresh the list of registrations from the backend - to ensure consistency
-            loadRegistrations();
+            // Refresh the list of registrations from the backend - to ensure consistency
+            loadRegistrations().catch(error => {
+                console.error('Error reloading registrations after deletion:', error);
+            });
 
         } catch (error) {
             console.error(`Failed to delete registration with id ${id}:`, error);
