@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { NotificationChannel, ChangeType, NotificationRegistration } from '../models/NotificationRegistration';
 import { useApplicationContext } from '@spteck/react-controls-v2';
-import BackendAPIService, { IBackendAPIService } from '../services/BackendAPIService';
+import { IBackendAPIService } from '../services/BackendAPIService';
 import { ListViewCommandSetContext } from '@microsoft/sp-listview-extensibility';
 import { IConfiguration } from '../models/Configuration';
 import MockBackendAPIService from '../services/MockBackendAPIService';

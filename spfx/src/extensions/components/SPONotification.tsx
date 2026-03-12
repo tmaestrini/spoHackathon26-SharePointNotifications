@@ -7,9 +7,6 @@ import * as React from 'react'; import {
 import { Button, makeStyles, SelectTabData, Tab, TabList, TabValue, tokens } from '@fluentui/react-components';
 import NotificationSettings from './NotificationSettings';
 import { useNotificationContext } from '../context/NotificationSettingsContext';
-import BackendAPIService from '../services/BackendAPIService';
-import { ListViewCommandSetContext } from '@microsoft/sp-listview-extensibility';
-import { IConfiguration } from '../models/Configuration';
 import NotificationRegistrations from './NotificationRegistrations';
 
 

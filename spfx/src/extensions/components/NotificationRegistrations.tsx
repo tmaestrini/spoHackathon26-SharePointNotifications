@@ -12,7 +12,7 @@ import {
     TableHeaderCell,
     TableRow
 } from "@fluentui/react-components";
-import { ChangeType, NotificationChannel, NotificationRegistration } from "../models/NotificationRegistration";
+import { NotificationRegistration } from "../models/NotificationRegistration";
 import { useNotificationContext } from "../context/NotificationSettingsContext";
 
 
