@@ -15,6 +15,7 @@ const NotificationSettings: React.FC = (props) => {
                 label="Enter the title for this alert. This is included in the subject of the notification sent for this alert." >
                 <InputField placeholder="Set the title of the notification"
                     // onChange={(value: string | number) => setTitle(value)} />
+                    required
                     onChange={(value: string | number) => changeSetting({ title: value })} />
             </ConfigItem >
 

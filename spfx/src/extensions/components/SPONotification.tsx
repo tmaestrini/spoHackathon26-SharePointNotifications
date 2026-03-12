@@ -36,12 +36,25 @@ const SPONotification: React.FC<ISPONotificationProps> = ({ onClose }) => {
     const [errorMessage, setErrorMessage] = React.useState<string | undefined>(undefined);
     const [successMessage, setSuccessMessage] = React.useState<string | undefined>(undefined);
     const [isSaving, setIsSaving] = React.useState(false);
+    const [formIsValid, setFormIsValid] = React.useState(false);
 
     // reset messages when tab changes
     React.useEffect(() => {
         setErrorMessage(undefined);
         setSuccessMessage(undefined);
     }, [selectedTab]);
+
+    React.useEffect(() => {
+        // simple validation to check if required fields are filled out
+        if (registration.description && registration.description.length > 3
+            && registration.userId 
+            && registration.changeType 
+            && registration.notificationChannel.length > 0) {
+            setFormIsValid(true);
+        } else {
+            setFormIsValid(false);
+        }
+    }, [registration]);
 
     const onSave = async (): Promise<void> => {
         try {
@@ -70,7 +83,7 @@ const SPONotification: React.FC<ISPONotificationProps> = ({ onClose }) => {
                 style={{ width: '100%', position: 'absolute', bottom: '24px', right: '24px' }}>
                 {selectedTab === Tabs.Settings &&
                     <Button appearance="primary" icon={<Save24Regular />}
-                        onClick={onSave} disabled={isSaving}>Save</Button>
+                        onClick={onSave} disabled={isSaving || !formIsValid}>Save</Button>
                 }
                 <Button appearance="secondary" icon={<DismissCircle24Regular />}
                     onClick={onCloseDialog}>Close</Button>
