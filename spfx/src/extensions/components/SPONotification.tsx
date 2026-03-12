@@ -51,13 +51,14 @@ const SPONotification: React.FC<ISPONotificationProps> = ({ onClose }) => {
     const DialogActions: React.FC = () => {
         return (
             <StackV2 paddingTop="m" direction="horizontal" gap="s"
-                justifyContent="flex-end" style={{ width: '100%' }}>
-                <Button appearance="secondary" icon={<DismissCircle24Regular />}
-                    onClick={() => { setDialogOpen(false); onClose(); }}>Close</Button>
+                justifyContent="flex-end" 
+                style={{ width: '100%', position: 'absolute', bottom: '24px', right: '24px'}}>
                 {selectedTab === Tabs.Settings &&
                     <Button appearance="primary" icon={<Save24Regular />}
                         onClick={onSave}>Save</Button>
                 }
+                <Button appearance="secondary" icon={<DismissCircle24Regular />}
+                    onClick={() => { setDialogOpen(false); onClose(); }}>Close</Button>
             </StackV2>
         )
     }
@@ -85,7 +86,7 @@ const SPONotification: React.FC<ISPONotificationProps> = ({ onClose }) => {
             }
             onDismiss={() => { setDialogOpen(false); onClose(); }}
         >
-            <StackV2 direction="vertical" gap="l">
+            <StackV2 direction="vertical" gap="l" style={{ maxHeight: 'calc(700px - 160px)', overflowY: 'auto' }}>
                 <TypographyControl>
                     Alert me when items change
                 </TypographyControl>
