@@ -10,7 +10,14 @@ type BackendAPIServiceResponse = {
     message: string;
 }
 
-export default class BackendAPIService {
+export interface IBackendAPIService {
+    deleteRegistration(id: string): Promise<BackendAPIServiceResponse>;
+    loadRegistrations(): Promise<NotificationRegistration[]>;
+    createRegistration(registration: NotificationRegistration): Promise<BackendAPIServiceResponse>;
+}
+
+
+export default class BackendAPIService implements IBackendAPIService {
     private static instance: BackendAPIService;
     private aadHttpClientFactory: AadHttpClientFactory | undefined = undefined;
     private client: AadHttpClient | undefined = undefined;

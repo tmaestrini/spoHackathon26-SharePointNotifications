@@ -37,11 +37,10 @@ const SPONotification: React.FC<ISPONotificationProps> = ({ onClose }) => {
     const [errorMessage, setErrorMessage] = React.useState<string | undefined>(undefined);
 
     const onSave = async (): Promise<void> => {
-        // TODO: call backend API to save the settings (get the service URL from admin context)
         try {
             await backendService.createRegistration(registration)
-            // setDialogOpen(false);
-            // onClose();
+            setDialogOpen(false);
+            onClose();
         } catch (error) {
             setErrorMessage(error instanceof Error ? error.message : 'Failed to save notification settings');
             console.error('Failed to save notification settings:', error);

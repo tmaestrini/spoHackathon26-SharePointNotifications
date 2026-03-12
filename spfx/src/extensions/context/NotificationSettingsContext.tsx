@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { NotificationChannel, ChangeType, NotificationRegistration } from '../models/NotificationRegistration';
 import { useApplicationContext } from '@spteck/react-controls-v2';
-import BackendAPIService from '../services/BackendAPIService';
+import BackendAPIService, { IBackendAPIService } from '../services/BackendAPIService';
 import { ListViewCommandSetContext } from '@microsoft/sp-listview-extensibility';
 import { IConfiguration } from '../models/Configuration';
+import MockBackendAPIService from '../services/MockBackendAPIService';
 
 
 export type NotificationSettings = {
@@ -17,7 +18,7 @@ export interface INotificationSettingsContext {
     changeSetting: (setting: Partial<NotificationSettings>) => void;
     notificationSettings: NotificationSettings;
     registration: NotificationRegistration;
-    backendService: BackendAPIService;
+    backendService: IBackendAPIService;
 }
 
 const NotificationSettingsContext = React.createContext<INotificationSettingsContext | undefined>(undefined);
@@ -30,7 +31,8 @@ export const NotificationSettingsProvider: React.FC<{
     const application = useApplicationContext();
     const [notificationSettings, setNotificationSettings] = React.useState<NotificationSettings>({});
 
-    const backendService = BackendAPIService.init(
+    //TODO Remove Mock
+    const backendService: IBackendAPIService = MockBackendAPIService.init(
         spoContext,
         configuration
     );
