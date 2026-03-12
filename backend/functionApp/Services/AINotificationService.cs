@@ -14,7 +14,7 @@ public class AINotificationService
         _logger.LogInformation("AINotificationService initialized .");
     }
 
-    public async Task<string> ProcessNotification()
+    public async Task<string> ProcessNotificationAsync(List<DeltaItemChange> items)
     {
         // TODO: Implement the logic to process the notification using AI capabilities
         // TODO: Update the method signature with the needed parameters (e.g., notification details, context information, etc.)
