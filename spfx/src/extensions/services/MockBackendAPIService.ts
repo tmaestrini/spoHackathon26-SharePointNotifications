@@ -3,6 +3,7 @@ import { ListViewCommandSetContext } from '@microsoft/sp-listview-extensibility'
 import { NotificationRegistration } from '../models/NotificationRegistration';
 import { IConfiguration } from '../models/Configuration';
 import { IBackendAPIService } from './BackendAPIService';
+import { Guid } from '@microsoft/sp-core-library';
 
 type BackendAPIServiceResponse = {
     status: number;
@@ -62,7 +63,7 @@ export default class MockBackendAPIService implements IBackendAPIService {
     public async createRegistration(registration: NotificationRegistration): Promise<BackendAPIServiceResponse> {
         await this.randomDelay();
         console.log('Creating notification registration with data:', registration);
-        this.registrations.push(registration);
+        this.registrations.push({...registration, id: Guid.newGuid().toString()});
         return Promise.resolve({
             status: 200,
             result: 'success',
