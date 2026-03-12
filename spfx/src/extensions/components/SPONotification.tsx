@@ -7,9 +7,6 @@ import * as React from 'react'; import {
 import { Button, makeStyles, SelectTabData, Tab, TabList, TabValue, tokens } from '@fluentui/react-components';
 import NotificationSettings from './NotificationSettings';
 import { useNotificationContext } from '../context/NotificationSettingsContext';
-import BackendAPIService from '../services/BackendAPIService';
-import { ListViewCommandSetContext } from '@microsoft/sp-listview-extensibility';
-import { IConfiguration } from '../models/Configuration';
 import NotificationRegistrations from './NotificationRegistrations';
 
 
@@ -37,11 +34,10 @@ const SPONotification: React.FC<ISPONotificationProps> = ({ onClose }) => {
     const [errorMessage, setErrorMessage] = React.useState<string | undefined>(undefined);
 
     const onSave = async (): Promise<void> => {
-        // TODO: call backend API to save the settings (get the service URL from admin context)
         try {
             await backendService.createRegistration(registration)
-            // setDialogOpen(false);
-            // onClose();
+            setDialogOpen(false);
+            onClose();
         } catch (error) {
             setErrorMessage(error instanceof Error ? error.message : 'Failed to save notification settings');
             console.error('Failed to save notification settings:', error);
