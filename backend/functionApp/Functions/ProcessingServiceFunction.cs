@@ -38,7 +38,7 @@ public class ProcessingServiceFunction
 
     [Function("ProcessWebhookNotification")]
     public async Task<IActionResult> ProcessWebhookNotification(
-        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "webhook/notification")] HttpRequest req)
+        [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req)
     {
         _logger.LogInformation("Processing SharePoint webhook notification.");
 

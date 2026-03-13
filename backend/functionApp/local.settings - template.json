@@ -14,6 +14,7 @@
     "SharePointTenantName": "SHAREPOINT_TENANT_NAME",
     "TableWebhookSubscriptions": "Webhooks",
     "TableDeltas": "Deltas",
-    "WebhookUrl": "WEBHOOK_URL"
+    "WebhookUrl": "WEBHOOK_URL",
+    "GitHubToken": "GITHUB_TOKEN"
   }
 }

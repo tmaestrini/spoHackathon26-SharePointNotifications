@@ -91,7 +91,7 @@ public class NotifierServiceFunction
 
                 foreach (var registration in registrationGroup)
                 {
-                    var notificationText = await _aiNotificationService.ProcessNotificationAsync(itemsToNotify);
+                    var notificationText = await _aiNotificationService.ProcessNotificationAsync(itemsToNotify, registration);
 
                     await SendNotificationAsync(registration, notificationText);
                 }
