@@ -29,15 +29,16 @@ public class AINotificationService
 
         try
         {
-            await using var client = new CopilotClient(new CopilotClientOptions
+            var clientOptions = new CopilotClientOptions { Logger = _logger };
+            if (!string.IsNullOrEmpty(_appSettings.GitHubToken))
             {
-                GitHubToken = _appSettings.GitHubToken,
-                Logger = _logger
-            });
+                clientOptions.GitHubToken = _appSettings.GitHubToken;
+            }
+            await using var client = new CopilotClient(clientOptions);
 
             await using var session = await client.CreateSessionAsync(new SessionConfig
             {
-                Model = "gpt-4o",
+                Model = "gpt-5",
                 SystemMessage = new SystemMessageConfig
                 {
                     Mode = SystemMessageMode.Replace,
@@ -66,8 +67,9 @@ public class AINotificationService
                 """;
 
             var reply = await session.SendAndWaitAsync(
-                new MessageOptions { Prompt = prompt },
-                timeout: TimeSpan.FromSeconds(30));
+                new MessageOptions { Prompt = prompt }//,
+                //timeout: TimeSpan.FromSeconds(30)
+                );
 
             var result = reply?.Data?.Content ?? "Changes were detected but could not be summarized.";
             _logger.LogInformation("AI processing complete for registration {RegistrationId}.", registration.Id);

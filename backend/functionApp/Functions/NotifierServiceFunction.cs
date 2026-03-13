@@ -46,7 +46,7 @@ public class NotifierServiceFunction
 
     [Function(nameof(ProcessNotificationQueue))]
     public async Task ProcessNotificationQueue(
-        [QueueTrigger("%NotificationQueueName%")] string queueMessage)
+        [QueueTrigger("notifications")] string queueMessage)
     {
         try
         {
