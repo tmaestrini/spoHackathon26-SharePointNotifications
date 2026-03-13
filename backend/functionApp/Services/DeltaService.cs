@@ -416,6 +416,10 @@ public class DeltaService
             {
                 _logger.LogDebug("CSOM: Searching for change item ID: '{itemId}'", change.ItemId);
 
+                // TODO: check the best way to find the deleted item, if possible to find by ID
+                // Probably the best way to deal with this is to filter by DeletedDateTime and
+                // the value should be greater than the last notification received.
+
                 // Try multiple matching strategies due to potential ID format differences
                 var deletedItem = recycleBinItems.FirstOrDefault(r => 
                     r.Id.ToString() == change.ItemId ||
