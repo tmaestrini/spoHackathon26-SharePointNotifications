@@ -1,5 +1,4 @@
 
-import { AadHttpClient, AadHttpClientFactory, HttpClientResponse } from '@microsoft/sp-http';
 import { ListViewCommandSetContext } from '@microsoft/sp-listview-extensibility';
 import { NotificationRegistration } from '../models/NotificationRegistration';
 import { IConfiguration } from '../models/Configuration';
