@@ -31,20 +31,46 @@ public class NotificationRegistryService
         return registration;
     }
 
-    public async Task<NotificationRegistration?> GetAsync(Guid userId, Guid registrationId)
+    public async Task<NotificationRegistration?> GetAsync(Guid? userId = null, Guid? registrationId = null)
     {
         _logger.LogInformation("Fetching registration {Id} for user {UserId}.", registrationId, userId);
-        try
+
+        if (userId.HasValue && registrationId.HasValue)
         {
-            var response = await _tableClient.GetEntityAsync<NotificationRegistrationEntity>(
-                userId.ToString(), registrationId.ToString());
-            return response.Value.ToModel();
+            try
+            {
+                var response = await _tableClient.GetEntityAsync<NotificationRegistrationEntity>(
+                    userId.Value.ToString(), registrationId.Value.ToString());
+                return response.Value.ToModel();
+            }
+            catch (Azure.RequestFailedException ex) when (ex.Status == 404)
+            {
+                _logger.LogWarning("Registration {Id} not found for user {UserId}.", registrationId, userId);
+                return null;
+            }
         }
-        catch (Azure.RequestFailedException ex) when (ex.Status == 404)
+
+        if (userId.HasValue)
         {
-            _logger.LogWarning("Registration {Id} not found for user {UserId}.", registrationId, userId);
+            await foreach (var entity in _tableClient.QueryAsync<NotificationRegistrationEntity>(
+                e => e.PartitionKey == userId.Value.ToString()))
+            {
+                return entity.ToModel();
+            }
             return null;
         }
+
+        if (registrationId.HasValue)
+        {
+            await foreach (var entity in _tableClient.QueryAsync<NotificationRegistrationEntity>(
+                e => e.RowKey == registrationId.Value.ToString()))
+            {
+                return entity.ToModel();
+            }
+            return null;
+        }
+
+        return null;
     }
 
     public async Task<List<NotificationRegistration>> GetByUserAsync(Guid userId)

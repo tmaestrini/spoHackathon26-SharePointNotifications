@@ -1,31 +1,28 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text.Json.Serialization;
 
 namespace functionApp.Models
 {
     public class WebhookNotificationModel
     {
-        [JsonProperty(PropertyName = "subscriptionId")]
+        [JsonPropertyName("subscriptionId")]
         public string SubscriptionId { get; set; }
 
-        [JsonProperty(PropertyName = "clientState")]
+        [JsonPropertyName("clientState")]
         public string ClientState { get; set; }
 
-        [JsonProperty(PropertyName = "expirationDateTime")]
+        [JsonPropertyName("expirationDateTime")]
         public DateTime ExpirationDateTime { get; set; }
 
-        [JsonProperty(PropertyName = "resource")]
+        [JsonPropertyName("resource")]
         public string Resource { get; set; }
 
-        [JsonProperty(PropertyName = "tenantId")]
+        [JsonPropertyName("tenantId")]
         public string TenantId { get; set; }
 
-        [JsonProperty(PropertyName = "siteUrl")]
+        [JsonPropertyName("siteUrl")]
         public string SiteUrl { get; set; }
 
-        [JsonProperty(PropertyName = "webId")]
+        [JsonPropertyName("webId")]
         public string WebId { get; set; }
     }
 }

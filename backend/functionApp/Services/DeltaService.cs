@@ -214,6 +214,11 @@ public class DeltaService
             {
                 _logger.LogWarning($"No delta link found in response for subscription: {webhookNotification.SubscriptionId}");
             }
+            // Enrich non-deleted items with version information (current/previous versions, field changes, file content)
+            await VersionHelper.EnrichVersionInformationAsync(deltaChanges, _appSettings, site.WebUrl, listId, _logger);
+
+            // Build the file URL for document items
+            await VersionHelper.EnrichFileUrlsAsync(deltaChanges, _appSettings, site.WebUrl, listId, _appSettings.SharePointTenantName, _logger);
 
             deltaChanges = await EnrichDeletedInformationAsync(deltaChanges, site.WebUrl);
 
