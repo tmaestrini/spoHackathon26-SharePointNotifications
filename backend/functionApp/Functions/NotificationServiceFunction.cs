@@ -16,8 +16,8 @@ public class NotificationServiceFunction
     private readonly WebhookService _webhookService;
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
-        PropertyNameCaseInsensitive = true,
-        Converters = { new JsonStringEnumConverter() }
+        PropertyNameCaseInsensitive = false,
+        Converters = { new JsonStringEnumConverter(allowIntegerValues: false) }
     };
 
     public NotificationServiceFunction(ILogger<NotificationServiceFunction> logger, NotificationRegistryService registryService, WebhookService webhookService)

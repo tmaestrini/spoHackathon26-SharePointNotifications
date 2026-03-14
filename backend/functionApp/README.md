@@ -1,6 +1,6 @@
 # SharePoint Notifications Backend
 
-Azure Functions backend for managing SharePoint notification registrations. Users can subscribe to changes on specific SharePoint lists/libraries and receive AI-summarized notifications via Teams or Email. The backend automatically registers and manages SharePoint webhook subscriptions, processes list item changes via Microsoft Graph delta queries with persistent checkpointing, enriches changes with version history and file content diffs, and generates human-readable notification summaries using Azure AI Foundry.
+Azure Functions backend for managing SharePoint notification registrations. Users can subscribe to changes on specific SharePoint lists/libraries and receive AI-summarized notifications via Teams or Email. The backend automatically registers and manages SharePoint webhook subscriptions, processes list item changes via Microsoft Graph delta queries with persistent checkpointing, enriches changes with version history, file content diffs, and file URLs, and generates human-readable notification summaries using Azure AI Foundry.
 
 ## Tech Stack
 
@@ -13,6 +13,7 @@ Azure Functions backend for managing SharePoint notification registrations. User
 - **Azure AI Foundry** for AI-powered notification summarization (via Azure OpenAI chat completions API)
 - **Power Automate Flow** for notification delivery (Teams and Email via HTTP trigger)
 - **Application Insights** for telemetry and monitoring
+- **System.Text.Json** for all JSON serialization/deserialization (camelCase property names via `[JsonPropertyName]` attributes, string enum serialization via `[JsonStringEnumConverter]`)
 
 ## Project Structure
 
@@ -29,21 +30,21 @@ functionApp/
 ├── Helpers/
 │   ├── ConnectionHelper.cs                 # SharePoint CSOM & Graph authentication helpers
 │   ├── DocumentTextExtractor.cs            # Text extraction from PDF, DOCX, DOC, and plain text files
-│   └── VersionHelper.cs                    # Enriches delta changes with version history & file content
+│   └── VersionHelper.cs                    # Enriches delta changes with version history, file content & file URLs
 ├── Models/
 │   ├── AppSettings.cs                      # Environment-based configuration model (reflection-populated)
 │   ├── DeltaChangeType.cs                  # Enum: Created, Updated, Deleted
 │   ├── DeltaEntity.cs                      # Azure Table Storage entity for delta token checkpoints
-│   ├── DeltaItemChange.cs                  # Represents a single list item change with version & file info
+│   ├── DeltaItemChange.cs                  # Represents a single list item change with version, file & URL info
 │   ├── NotificationRegistration.cs         # Core registration domain model + enums (ChangeType, NotificationChannel)
 │   ├── NotificationRegistrationEntity.cs   # Azure Table Storage entity mapping for registrations
 │   ├── ProcessingModels.cs                 # Queue message, webhook notification wrapper & resource info models
-│   ├── WebhookNotificationModel.cs         # SharePoint webhook payload model (Newtonsoft.Json)
+│   ├── WebhookNotificationModel.cs         # SharePoint webhook payload model (System.Text.Json)
 │   └── WebhookSubscriptionEntity.cs        # Azure Table Storage entity for webhook subscriptions
 └── Services/
     ├── FoundryAINotificationService.cs     # AI notification summarization via Azure AI Foundry
     ├── DeltaService.cs                     # Microsoft Graph delta queries with version enrichment & recycle bin
-    ├── NotificationRegistryService.cs      # CRUD operations for notification registrations
+    ├── NotificationRegistryService.cs      # CRUD operations for notification registrations (flexible lookup)
     ├── WebhookService.cs                   # SharePoint webhook register, remove & renew operations
     └── WebhookSubscriptionService.cs       # CRUD operations for webhook subscription records
 ```
@@ -62,16 +63,37 @@ Full REST API for managing notification registrations (`NotificationServiceFunct
 | `PUT` | `/api/registrations/{userId}/{id}` | `UpdateRegistration` | Update an existing registration |
 | `DELETE` | `/api/registrations/{userId}/{id}` | `DeleteRegistration` | Delete a registration and remove the webhook if no other registrations exist for the same list |
 
-Request/response payloads use the `NotificationRegistration` model:
+Request/response payloads use the `NotificationRegistration` model with camelCase JSON serialization to align with the frontend TypeScript interface:
 
-- **Id** (`Guid`) – Unique registration identifier (auto-generated on create)
-- **UserId** (`Guid`) – The subscribing user's ID
-- **ChangeType** (`enum`) – `CREATED`, `UPDATED`, `DELETED`, or `ALL`
-- **SiteId / WebId / ListId** (`Guid`) – SharePoint resource identifiers
-- **SiteUrl** (`string?`) – Full SharePoint site URL (e.g. `https://tenant.sharepoint.com/sites/MySite`)
-- **ItemId** (`int?`) – Optional specific item to watch
-- **NotificationChannels** (`NotificationChannel[]`) – Array of channels: `TEAMS` and/or `EMAIL`
-- **Description** (`string?`) – Optional description of the registration
+```json
+{
+  "id": "guid",
+  "userId": "guid",
+  "changeType": "CREATED",
+  "siteId": "guid",
+  "webId": "guid",
+  "listId": "guid",
+  "siteUrl": "https://tenant.sharepoint.com/sites/MySite",
+  "itemId": 1,
+  "notificationChannels": ["TEAMS", "EMAIL"],
+  "description": "Notify me on document changes"
+}
+```
+
+**Model properties:**
+
+| JSON Property | C# Type | Description |
+|--------------|---------|-------------|
+| `id` | `Guid` | Unique registration identifier (auto-generated on create) |
+| `userId` | `Guid` | The subscribing user's Entra ID |
+| `changeType` | `ChangeType` enum | `CREATED`, `UPDATED`, `DELETED`, or `ALL` |
+| `siteId` | `Guid` | SharePoint site ID |
+| `webId` | `Guid` | SharePoint web ID |
+| `listId` | `Guid` | SharePoint list/library ID |
+| `siteUrl` | `string?` | Full SharePoint site URL |
+| `itemId` | `int?` | Optional specific item to watch |
+| `notificationChannels` | `NotificationChannel[]` | Array of channels: `TEAMS` and/or `EMAIL` (serialized as string enums) |
+| `description` | `string?` | Optional description of what to watch for |
 
 **Input validation:**
 - `UserId` must not be `Guid.Empty`
@@ -87,6 +109,13 @@ Request/response payloads use the `NotificationRegistration` model:
 - Only removes the webhook if this was the last registration for that list
 - Webhook removal failure is logged but does not block the delete response
 
+**Flexible registration lookup (`NotificationRegistryService.GetAsync`):**
+- Accepts optional `userId` and/or `registrationId` parameters
+- Both provided: direct point lookup by PartitionKey + RowKey (fastest)
+- Only `userId`: queries by PartitionKey and returns the first match
+- Only `registrationId`: queries by RowKey and returns the first match
+- Neither: returns null
+
 ### 2. SharePoint Webhook Lifecycle Management
 
 Webhooks are automatically managed through the `WebhookService`:
@@ -100,7 +129,7 @@ Webhooks are automatically managed through the `WebhookService`:
 The webhook processing pipeline (`ProcessingServiceFunction`):
 
 1. **Validation** – Handles SharePoint's `validationtoken` query-string handshake when webhooks are being registered (returns the token as plain text with `200 OK`)
-2. **Notification Receiving** – `POST /api/ProcessWebhookNotification` receives webhook notifications from SharePoint (supports batched notifications via the `value` array). Includes robust error handling for incomplete/truncated payloads and IO errors.
+2. **Notification Receiving** – `POST /api/ProcessWebhookNotification` receives webhook notifications from SharePoint (supports batched notifications via the `value` array). Includes robust error handling for incomplete/truncated payloads and IO errors. Uses `System.Text.Json` with `[JsonPropertyName]` attributes on `WebhookNotificationModel` (properties: `subscriptionId`, `clientState`, `expirationDateTime`, `resource`, `tenantId`, `siteUrl`, `webId`).
 3. **Site Resolution** – For each notification, the function reconstructs the full site URL from `SharePointTenantName` + `notification.SiteUrl` and loads the SharePoint Site ID via CSOM
 4. **Registration Correlation** – Each notification is correlated with matching registrations in table storage by `WebId` and `ListId` (the `Resource` field). Note: `SiteId` filtering is currently bypassed.
 5. **Queue Dispatch** – Matched notifications are wrapped in a `NotificationQueueMessage` (including all matching registrations, the webhook notification, and a `QueuedAt` timestamp), serialized to JSON, Base64-encoded, and sent to the `notifications` Azure Queue
@@ -110,7 +139,7 @@ The webhook processing pipeline (`ProcessingServiceFunction`):
 The `NotifierServiceFunction` processes messages from the `notifications` queue:
 
 1. **Deserialization** – Deserializes the `NotificationQueueMessage` containing matched registrations and the webhook notification
-2. **Delta Retrieval** – Retrieves list item changes via Microsoft Graph delta queries (`DeltaService.GetDeltaForNotificationAsync`), including version enrichment and deleted item enrichment from the recycle bin
+2. **Delta Retrieval** – Retrieves list item changes via Microsoft Graph delta queries (`DeltaService.GetDeltaForNotificationAsync`), including version enrichment, file URL enrichment, and deleted item enrichment from the recycle bin
 3. **Change Classification** – Delta items are classified into `Created`, `Updated`, and `Deleted` categories
 4. **ChangeType Filtering** – Registrations are grouped by their `ChangeType` filter. Each group receives only the relevant subset of delta items:
    - `CREATED` registrations → only created items
@@ -127,7 +156,11 @@ Failed messages are re-thrown to be moved to the poison queue for manual inspect
 
 ### 5. AI-Powered Notification Summarization
 
-The `FoundryAINotificationService` uses the Azure AI Foundry (Azure OpenAI) chat completions API to generate human-readable notification summaries:
+Two AI summarization services are available:
+
+#### FoundryAINotificationService (Primary)
+
+Uses the Azure AI Foundry (Azure OpenAI) chat completions API to generate human-readable notification summaries:
 
 - **API call** – Sends a `POST` request to `AzureFoundryApiUrl` with `api-key` header authentication (`AzureFoundryApiKey` setting)
 - **System prompt** – Configures the AI as a "SharePoint notification assistant" that summarizes changes, highlights field-level differences between versions, and compares current/previous file content for documents
@@ -135,9 +168,13 @@ The `FoundryAINotificationService` uses the Azure AI Foundry (Azure OpenAI) chat
   - Item IDs, change types, and field values from Graph `AdditionalData`
   - Current and previous version metadata (`VersionLabel`, `FieldValues`)
   - Field-level changes between versions (`FieldTitle`, `PreviousValue`, `NewValue`)
+  - Whether the item is a document (`IsDocument`), its file name, and its full file URL (`FileUrl`)
   - Extracted text content from current and previous document versions (via `DocumentTextExtractor`)
-  - File name and version labels for documents
-- **Structured output templates** – The prompt includes specific output format templates for each change type (Created, Updated, Deleted) ensuring consistent, actionable notification messages
+  - Previous file version label for documents
+- **Structured output templates** – The prompt includes specific output format templates for each change type:
+  - **Updated** – ChangeType, Document Name (with URL), Version change, Last Modified By, Modification Date, Content Changes (added/modified text), Metadata Changes (field diffs)
+  - **Created** – ChangeType, Document Name (with URL), Version, Last Modified By, Modification Date, Content summary, Metadata values
+  - **Deleted** – ChangeType, Document Name/Item ID, Last version label, Deletion date/time, Deleted by user
 - **Fallback** – If the AI call fails, a basic summary is generated listing the count of created, updated, and deleted items
 - **Empty changes** – Returns "No changes detected." when no delta items are present
 
@@ -147,8 +184,8 @@ Three tables are used (all auto-created on startup):
 
 - **`NotificationRegistrations`** – Stores user notification registrations
   - **PartitionKey** = `UserId` (Guid as string), **RowKey** = Registration `Id` (Guid as string)
-  - Complex fields (`NotificationChannels`) serialized as JSON string
-  - `ChangeType` stored as string enum name
+  - Complex fields (`NotificationChannels`) serialized as JSON string (string enum values: `"TEAMS"`, `"EMAIL"`)
+  - `ChangeType` stored as string enum name (`"CREATED"`, `"UPDATED"`, `"DELETED"`, `"ALL"`)
 
 - **`WebhookSubscriptions`** – Stores active SharePoint webhook subscriptions
   - **PartitionKey** = `"Webhooks"`, **RowKey** = SharePoint Subscription `Id`
@@ -172,7 +209,7 @@ The `ConnectionHelper` (static class) provides authenticated connections using c
 
 ### 8. Microsoft Graph Delta Queries & Change Enrichment
 
-The `DeltaService` retrieves and tracks list item changes via Microsoft Graph's delta endpoint with persistent checkpointing, and enriches changes with version history and recycle bin metadata.
+The `DeltaService` retrieves and tracks list item changes via Microsoft Graph's delta endpoint with persistent checkpointing, and enriches changes with version history, file URLs, and recycle bin metadata.
 
 #### Delta Query Processing
 
@@ -186,7 +223,7 @@ The `DeltaService` retrieves and tracks list item changes via Microsoft Graph's 
 - **Deduplication** – Tracks processed item IDs in a `HashSet` to prevent duplicate entries across pages
 - **Site resolution** – Resolves the SharePoint site via Graph using the tenant name and site URL path from the webhook notification
 
-#### Version Enrichment (`VersionHelper`)
+#### Version Enrichment (`VersionHelper.EnrichVersionInformationAsync`)
 
 After delta processing, non-deleted items are enriched with version history via SharePoint CSOM:
 
@@ -198,12 +235,39 @@ After delta processing, non-deleted items are enriched with version history via 
   - Downloads the previous file version content (if versions exist) and records its version label
   - File content is later extracted as text by `DocumentTextExtractor` during AI summarization
 
+#### File URL Enrichment (`VersionHelper.EnrichFileUrlsAsync`)
+
+After version enrichment, document items are enriched with their full file URL:
+
+- Iterates non-deleted items that have a `CurrentFileName` set (i.e., documents)
+- Uses CSOM to load `File.ServerRelativeUrl` for each document item
+- Constructs the full URL as `https://{SharePointTenantName}{ServerRelativeUrl}`
+- The `FileUrl` is included in the AI prompt so notifications contain direct links to documents
+
 #### Deleted Item Enrichment
 
 Deleted items (which Graph returns without metadata) are enriched from the SharePoint recycle bin:
 
 - **REST API approach (primary)** – Queries the site's recycle bin via `/_api/web/recyclebin?$top=1000` using an app-only access token. Matches deleted items by ID and enriches with `Title`, `DeletedDate`, and `DeletedByName`.
 - **CSOM approach (fallback)** – If the REST API fails, falls back to PnP Framework CSOM to query first-stage and second-stage recycle bins. Uses multiple ID matching strategies to handle format differences between Graph and SharePoint IDs.
+
+#### DeltaItemChange Model
+
+Each delta change item carries the following data through the pipeline:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `ItemId` | `string` | SharePoint list item ID |
+| `ChangeType` | `DeltaChangeType` | `Created`, `Updated`, or `Deleted` |
+| `Item` | `ListItem?` | Microsoft Graph ListItem (null for deleted items) |
+| `CurrentVersionInfo` | `ItemVersionInfo?` | Current version label + field values |
+| `PreviousVersionInfo` | `ItemVersionInfo?` | Previous version label + field values |
+| `FieldChanges` | `List<FieldChange>?` | Field-level diffs (title, previous value, new value) |
+| `CurrentFileContent` | `byte[]?` | Current document file bytes |
+| `CurrentFileName` | `string?` | Current document file name |
+| `FileUrl` | `string?` | Full URL to the document file |
+| `PreviousFileContent` | `byte[]?` | Previous version document file bytes |
+| `PreviousFileVersionLabel` | `string?` | Previous file version label |
 
 #### Document Text Extraction (`DocumentTextExtractor`)
 
@@ -232,6 +296,7 @@ Extracts readable text content from file bytes for AI summarization:
 | `NotificationQueueName` | Queue name for notification processing |
 | `SharePointTenantName` | SharePoint tenant hostname (e.g. `contoso.sharepoint.com`) |
 | `WebhookUrl` | Public URL of the `ProcessWebhookNotification` endpoint |
+| `GitHubToken` | GitHub token for Copilot SDK authentication |
 | `AzureFoundryApiUrl` | Azure AI Foundry (Azure OpenAI) chat completions API endpoint URL |
 | `AzureFoundryApiKey` | API key for Azure AI Foundry authentication |
 | `NotificationFlowUrl` | Power Automate Flow HTTP trigger URL for sending notifications |
@@ -252,6 +317,16 @@ Extracts readable text content from file bytes for AI summarization:
 - `DeltaService` – Microsoft Graph delta queries with version enrichment
 - `FoundryAINotificationService` – AI notification summarization via Azure AI Foundry
 - `HttpClient` – registered via `AddHttpClient()` for DeltaService and FoundryAINotificationService
+
+### 11. JSON Serialization
+
+All JSON serialization uses `System.Text.Json` with consistent configuration across the project:
+
+- **Model-level attributes** – `NotificationRegistration` properties use `[JsonPropertyName]` for camelCase serialization (e.g., `userId`, `changeType`, `notificationChannels`) to align with the frontend TypeScript interface
+- **Enum serialization** – Both `ChangeType` and `NotificationChannel` enums are decorated with `[JsonConverter(typeof(JsonStringEnumConverter))]` for string-based serialization (`"CREATED"`, `"TEAMS"`, etc.)
+- **Webhook model** – `WebhookNotificationModel` uses `[JsonPropertyName]` attributes for incoming SharePoint webhook payloads (`subscriptionId`, `resource`, `siteUrl`, `webId`, etc.)
+- **Function-level options** – `NotificationServiceFunction` and `ProcessingServiceFunction` use `PropertyNameCaseInsensitive = false` with `JsonStringEnumConverter(allowIntegerValues: false)` for strict deserialization
+- **Queue processing** – `NotifierServiceFunction` uses `PropertyNameCaseInsensitive = true` for flexible deserialization of queue messages
 
 ## Architecture Flow
 
@@ -286,13 +361,15 @@ NotifierServiceFunction.ProcessNotificationQueue
         │       ├─► Load delta checkpoint from Deltas table
         │       ├─► Graph delta query (initial or incremental)
         │       ├─► Classify items: Created / Updated / Deleted
-        │       ├─► VersionHelper: Enrich with version history & file content
+        │       ├─► VersionHelper.EnrichVersionInformationAsync: version history & file content
+        │       ├─► VersionHelper.EnrichFileUrlsAsync: file URLs for documents
         │       ├─► EnrichDeletedInformation: Enrich from recycle bin (REST + CSOM)
         │       └─► Save new delta checkpoint to Deltas table
         │
         ├─► Group registrations by ChangeType filter
         ├─► FoundryAINotificationService.ProcessNotificationAsync
-        │       ├─► Azure AI Foundry chat completion (with version diffs & file content)
+        │       ├─► Build rich prompt (version diffs, file content, file URLs)
+        │       ├─► Azure AI Foundry chat completion
         │       └─► Fallback: basic count summary on failure
         │
         └─► SendNotificationAsync per channel
@@ -347,11 +424,12 @@ Copy `local.settings - template.json` to `local.settings.json` and fill in the r
     "VaultCertName": "KEY_VAULT_CERT_NAME",
     "CertThumbprint": "LOCAL_CERT_THUMBPRINT",
     "TableNotificationRegistrations": "NotificationRegistrations",
-    "TableWebhookSubscriptions": "WebhookSubscriptions",
+    "TableWebhookSubscriptions": "Webhooks",
     "TableDeltas": "Deltas",
     "NotificationQueueName": "notifications",
     "SharePointTenantName": "SHAREPOINT_TENANT_NAME",
     "WebhookUrl": "WEBHOOK_NOTIFICATION_URL",
+    "GitHubToken": "GITHUB_TOKEN",
     "AzureFoundryApiUrl": "AZURE_FOUNDRY_API_URL",
     "AzureFoundryApiKey": "AZURE_FOUNDRY_API_KEY",
     "NotificationServiceUserName": "SERVICE_ACCOUNT_USER_NAME",

@@ -205,4 +205,69 @@ public static class VersionHelper
             logger.LogWarning(ex, "Could not fetch file versions for item {ItemId}. Skipping file enrichment.", change.ItemId);
         }
     }
+
+    /// <summary>
+    /// Enriches non-deleted document items with their full file URL.
+    /// </summary>
+    public static async Task EnrichFileUrlsAsync(
+        List<DeltaItemChange> deltaChanges,
+        AppSettings appSettings,
+        string siteUrl,
+        string listId,
+        string tenantName,
+        ILogger logger)
+    {
+        var documentChanges = deltaChanges
+            .Where(c => c.ChangeType != DeltaChangeType.Deleted && c.CurrentFileName != null)
+            .ToList();
+
+        if (documentChanges.Count == 0)
+        {
+            logger.LogInformation("No document items to enrich with file URLs.");
+            return;
+        }
+
+        logger.LogInformation("Enriching {Count} document items with file URLs.", documentChanges.Count);
+
+        var tenantUrl = $"https://{tenantName}";
+        ClientContext? ctx = null;
+        try
+        {
+            ctx = ConnectionHelper.GetContext(appSettings, siteUrl, logger);
+            var list = Guid.TryParse(listId, out _)
+                ? ctx.Web.Lists.GetById(Guid.Parse(listId))
+                : ctx.Web.Lists.GetByTitle(listId);
+
+            foreach (var change in documentChanges)
+            {
+                try
+                {
+                    if (!int.TryParse(change.ItemId, out var numericItemId))
+                    {
+                        logger.LogWarning("Could not parse item ID '{ItemId}' as integer. Skipping file URL enrichment.", change.ItemId);
+                        continue;
+                    }
+
+                    var item = list.GetItemById(numericItemId);
+                    ctx.Load(item, i => i.File);
+                    ctx.Load(item.File, f => f.ServerRelativeUrl);
+                    await ctx.ExecuteQueryRetryAsync();
+
+                    if (item.File != null && !string.IsNullOrEmpty(item.File.ServerRelativeUrl))
+                    {
+                        change.FileUrl = $"{tenantUrl}{item.File.ServerRelativeUrl}";
+                        logger.LogDebug("Item {ItemId}: File URL set to {FileUrl}", change.ItemId, change.FileUrl);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Could not retrieve file URL for item {ItemId}. Skipping.", change.ItemId);
+                }
+            }
+        }
+        finally
+        {
+            ctx?.Dispose();
+        }
+    }
 }

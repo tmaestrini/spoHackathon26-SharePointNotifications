@@ -21,6 +21,9 @@ public class DeltaItemChange
     /// <summary>Current file name (for documents only)</summary>
     public string? CurrentFileName { get; set; }
 
+    /// <summary>Full URL to the file (for documents only)</summary>
+    public string? FileUrl { get; set; }
+
     /// <summary>Previous file version content (for documents only)</summary>
     public byte[]? PreviousFileContent { get; set; }
 

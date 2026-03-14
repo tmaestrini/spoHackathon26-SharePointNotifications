@@ -47,6 +47,7 @@ public class FoundryAINotificationService
 
         try
         {
+
             var changeSummary = items.Select(i => new
             {
                 i.ItemId,
@@ -70,10 +71,12 @@ public class FoundryAINotificationService
                 }),
                 IsDocument = i.CurrentFileName != null,
                 FileName = i.CurrentFileName,
+                FileUrl = i.FileUrl,
                 CurrentFileContent = DocumentTextExtractor.ExtractTextContent(i.CurrentFileContent, i.CurrentFileName),
                 PreviousFileContent = DocumentTextExtractor.ExtractTextContent(i.PreviousFileContent, i.CurrentFileName),
                 PreviousFileVersionLabel = i.PreviousFileVersionLabel
             });
+ 
 
             var systemMessage = "You are a SharePoint notification assistant. Your job is to summarize list or library changes into clear, concise, human-readable notification messages. Focus on what changed (created, updated, deleted), which items were affected, and any relevant field values. When version information and field-level changes are available, highlight what specifically changed between the current and previous version. For documents, compare the current and previous file content and describe what was added, removed, or modified. Mention the file name and version labels. Keep the summary brief and actionable.";
 
@@ -90,50 +93,45 @@ public class FoundryAINotificationService
                 
                 If its an update, The summary should be in below format and should only include the fields that were changed:
                 
-                'SharePoint Notification
+                '
+                - ChangeType : Updated
+                - Document Name: Updated Document Name or List Item ID <Add the URL of the file here if it is a file>
+                - Version: Updated from version to version if available, otherwise just mention the current version label
+                - Last Modified By: ABCDEF
+                - Modification Date: March 14, 2026
 
-                ChangeType : Updated
-                Document Name: Updated Document Name or List Item ID
-                Version: Updated from version to version if available, otherwise just mention the current version label
-                Last Modified By: ABCDEF
-                Modification Date: March 14, 2026
-
-                Content Changes
-
-                Added or Modified Text
+                ## Content Changes (Added or Modified Text)
 
                 "Hi abc, I have completed the Document changes as well, This is the Text which is returned."
 
-                Metadata Changes
+                ## Metadata Changes
                 Field1: Previous Value -> New Value
 
                 No other field-level changes were detected in the document metadata.'
 
                 If it's a creation, summarize the changes in a similar concise format, mentioning the key details of the created, such as the item type (document, list item), name, and any relevant field values.
 
-                'SharePoint Notification
+                '
+                - ChangeType : Created
+                - Document Name: Document Name or List Item ID <Add the URL of the file here if it is a file>
+                - Version: if available, mention the version label for created item
+                - Last Modified By: ABCDEF
+                - Modification Date: March 14, 2026
                 
-                ChangeType : Created
-                Document Name: Document Name or List Item ID
-                Version: if available, mention the version label for created item
-                Last Modified By: ABCDEF
-                Modification Date: March 14, 2026
-                
-                Content : 
+                ## Content : 
                 Summarize the content of the document here. If it's a non-text file, just mention the file name and type.
                 
-                Metadata:
+                ## Metadata:
                 Specify the key metadata values for the created item. For example:
                 Field1: Value1'
 
                 If its a deletion, the summary should be like below format:
-                'SharePoint Notification
-
-                ChangeType : Deleted
-                Document Name: if its a document mention the document name, if its a list item then mention the item id.
-                Version: if available, mention the last version label before deletion
-                When it was deleted: if available, mention the deletion date and time
-                Who deleted it: if available, mention the user who performed the deletion'
+                '
+                - ChangeType : Deleted
+                - Document Name: if its a document mention the document name, if its a list item then mention the item id.
+                - Version: if available, mention the last version label before deletion
+                - When it was deleted: if available, mention the deletion date and time
+                - Who deleted it: if available, mention the user who performed the deletion'
 
                 """;
 
