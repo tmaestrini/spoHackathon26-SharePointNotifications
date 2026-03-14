@@ -28,7 +28,7 @@ The team consists of:
 
 ## Architecture
 
-The solutions utilizes a combination of SharePoint Framework (SPFx) for the front-end components and a backend service for handling notifications and other business logic, and Power Automate to deliver notifications.
+The solution utilizes a combination of SharePoint Framework (SPFx) for the front-end components and a backend service for handling notifications and other business logic. Notifications are delivered through Power Automate.
 
 ### SPFx
 
