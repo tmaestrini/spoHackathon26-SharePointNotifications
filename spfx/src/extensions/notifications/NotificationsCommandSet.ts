@@ -21,6 +21,7 @@ import { IConfiguration } from '../models/Configuration';
 export interface INotificationsCommandSetProperties {
   AZURE_FUNCTION_BASE_URL: string;
   AZURE_FUNCTION_CLIENT_ID: string;
+  AZURE_FUNCTION_KEY: string;
 }
 
 const LOG_SOURCE: string = 'NotificationsCommandSet';
@@ -61,7 +62,8 @@ export default class NotificationsCommandSet extends BaseListViewCommandSet<INot
       case COMMAND_NAME: {
         const configuration: IConfiguration = {
           AZURE_FUNCTION_BASE_URL: this.properties.AZURE_FUNCTION_BASE_URL,
-          AZURE_FUNCTION_CLIENT_ID: this.properties.AZURE_FUNCTION_CLIENT_ID
+          AZURE_FUNCTION_CLIENT_ID: this.properties.AZURE_FUNCTION_CLIENT_ID,
+          AZURE_FUNCTION_KEY: this.properties.AZURE_FUNCTION_KEY
         }
         const dialog = new SPONotificationDialog(this.context, configuration);
         dialog.show().catch(error => console.error(error));

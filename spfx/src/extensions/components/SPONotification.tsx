@@ -49,7 +49,7 @@ const SPONotification: React.FC<ISPONotificationProps> = ({ onClose }) => {
         if (registration.description && registration.description.length > 3
             && registration.userId 
             && registration.changeType 
-            && registration.notificationChannel.length > 0) {
+            && registration.notificationChannels.length > 0) {
             setFormIsValid(true);
         } else {
             setFormIsValid(false);
@@ -125,7 +125,7 @@ const SPONotification: React.FC<ISPONotificationProps> = ({ onClose }) => {
                     </NotificationMessageBar>
                 }
                 {successMessage &&
-                    <NotificationMessageBar type='info' onDismiss={() => setSuccessMessage(undefined)}>
+                    <NotificationMessageBar type='success' onDismiss={() => setSuccessMessage(undefined)}>
                         {successMessage}
                     </NotificationMessageBar>
                 }

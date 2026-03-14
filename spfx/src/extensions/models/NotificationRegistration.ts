@@ -9,7 +9,7 @@ export type NotificationRegistration = {
     webId: UUID;
     listId: UUID;
     itemId?: number;
-    notificationChannel: NotificationChannel[];
+    notificationChannels: NotificationChannel[];
     description?: string;
 };
 

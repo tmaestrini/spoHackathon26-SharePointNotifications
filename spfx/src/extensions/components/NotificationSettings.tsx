@@ -35,9 +35,9 @@ const NotificationSettings: React.FC = (props) => {
                 <Dropdown
                     multiselect
                     placeholder="Select the channel"
-                    onOptionSelect={(_: SelectionEvents, data: OptionOnSelectData) => changeSetting({ deliveryMethod: [data.optionValue as NotificationChannel] })}>
-                    <Option key={NotificationChannel.Email}>Email</Option>
-                    <Option key={NotificationChannel.Teams}>Microsoft Teams (Chat)</Option>
+                    onOptionSelect={(_: SelectionEvents, data: OptionOnSelectData) => changeSetting({ deliveryMethod: data.selectedOptions as NotificationChannel[] })}>
+                    <Option key={NotificationChannel.Email} value={NotificationChannel.Email}>Email</Option>
+                    <Option key={NotificationChannel.Teams} value={NotificationChannel.Teams}>Microsoft Teams (Chat)</Option>
                     {/* <Option key={NotificationChannel.TeamsChannel}>Microsoft Teams Channel</Option> */}
                 </Dropdown>
             </ConfigItem>

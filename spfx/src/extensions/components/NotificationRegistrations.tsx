@@ -16,7 +16,7 @@ import { NotificationRegistration } from "../models/NotificationRegistration";
 import { useNotificationContext } from "../context/NotificationSettingsContext";
 
 
-type NotificationItem = Required<Pick<NotificationRegistration, 'id' | 'description' | 'notificationChannel' | 'changeType'>>;
+type NotificationItem = Required<Pick<NotificationRegistration, 'id' | 'description' | 'notificationChannels' | 'changeType'>>;
 
 const NotificationRegistrations: React.FC = () => {
     const { backendService } = useNotificationContext();
@@ -39,7 +39,7 @@ const NotificationRegistrations: React.FC = () => {
                 changeType: item.changeType,
                 description: item.description ?? "",
                 id: item.id ?? "",
-                notificationChannel: item.notificationChannel,
+                notificationChannels: item.notificationChannels,
             })));
             setIsLoading(false);
         } catch (error) {
@@ -88,7 +88,7 @@ const NotificationRegistrations: React.FC = () => {
                             <TableRow key={index}>
                                 <TableHeaderCell>{item.description}</TableHeaderCell>
                                 <TableHeaderCell><Badge appearance="outline" color="informative" shape="rounded">{item.changeType}</Badge></TableHeaderCell>
-                                <TableHeaderCell>{item.notificationChannel.join(', ')}</TableHeaderCell>
+                                <TableHeaderCell>{item.notificationChannels?.join(', ')}</TableHeaderCell>
                                 <TableHeaderCell>
                                     <Button appearance="subtle" size="small" icon={<DeleteRegular />}
                                         onClick={() => deleteRegistration(item.id)}

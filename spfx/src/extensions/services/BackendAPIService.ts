@@ -3,6 +3,7 @@ import { AadHttpClient, AadHttpClientFactory, HttpClientResponse } from '@micros
 import { ListViewCommandSetContext } from '@microsoft/sp-listview-extensibility';
 import { NotificationRegistration } from '../models/NotificationRegistration';
 import { IConfiguration } from '../models/Configuration';
+import { IUserInfo } from '@spteck/react-controls-v2';
 
 type BackendAPIServiceResponse = {
     status: number;
@@ -19,18 +20,19 @@ export interface IBackendAPIService {
 
 export default class BackendAPIService implements IBackendAPIService {
     private static instance: BackendAPIService;
-    private aadHttpClientFactory: AadHttpClientFactory | undefined = undefined;
-    private client: AadHttpClient | undefined = undefined;
+    private userContext: IUserInfo | undefined = undefined;
     private AZURE_FUNCTION_CLIENT_ID: string | undefined = undefined;
     private AZURE_FUNCTION_BASE_URL: string | undefined = undefined;
+    private AZURE_FUNCTION_KEY: string | undefined = undefined;
 
     private constructor() { }
 
-    public static init(context: ListViewCommandSetContext, configuration: IConfiguration): BackendAPIService {
+    public static init(context: ListViewCommandSetContext, configuration: IConfiguration, userContext?: IUserInfo): BackendAPIService {
         const instance = this.getInstance();
-        instance.aadHttpClientFactory = context.aadHttpClientFactory;
+        instance.userContext = userContext;
         instance.AZURE_FUNCTION_CLIENT_ID = configuration.AZURE_FUNCTION_CLIENT_ID;
         instance.AZURE_FUNCTION_BASE_URL = configuration.AZURE_FUNCTION_BASE_URL;
+        instance.AZURE_FUNCTION_KEY = configuration.AZURE_FUNCTION_KEY;
 
         return instance;
     }
@@ -42,19 +44,17 @@ export default class BackendAPIService implements IBackendAPIService {
         return BackendAPIService.instance;
     }
 
-    private async query(endpoint: string, method: 'POST' | 'GET' | 'PUT' | 'DELETE', body?: any): Promise<HttpClientResponse> {
-        if (!this.client) {
-            this.client = await this.aadHttpClientFactory?.getClient(this.AZURE_FUNCTION_CLIENT_ID ?? "");
-        }
+    private async query(endpoint: string, method: 'POST' | 'GET' | 'PUT' | 'DELETE', body?: any): Promise<Response> {
 
-        const response = await this.client?.fetch(this.AZURE_FUNCTION_BASE_URL + endpoint, AadHttpClient.configurations.v1, {
+        const response = await fetch(this.AZURE_FUNCTION_BASE_URL + endpoint, {
             method,
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'x-functions-key': this.AZURE_FUNCTION_KEY ?? '',
             },
             body: body && JSON.stringify(body)
         });
-
+ 
         if (!response || !response.ok) {
             console.error('API request failed:', response);
             return Promise.reject('API request failed');
@@ -65,7 +65,7 @@ export default class BackendAPIService implements IBackendAPIService {
 
     public async deleteRegistration(id: string): Promise<BackendAPIServiceResponse> {
         try {
-            await this.query(`registrations/${encodeURIComponent(id)}`, 'DELETE');
+            await this.query(`registrations/${this.userContext?.userId}/${encodeURIComponent(id)}`, 'DELETE');
             return Promise.resolve({
                 status: 200,
                 result: 'success',
@@ -83,7 +83,7 @@ export default class BackendAPIService implements IBackendAPIService {
 
     public async loadRegistrations(): Promise<NotificationRegistration[]> {
         try {
-            const response = await this.query('registrations', 'GET');
+            const response = await this.query(`registrations/${this.userContext?.userId}`, 'GET');
             const data = await response.json();
             console.log('API response for loading registrations:', data);
             return Promise.resolve(data as NotificationRegistration[]);

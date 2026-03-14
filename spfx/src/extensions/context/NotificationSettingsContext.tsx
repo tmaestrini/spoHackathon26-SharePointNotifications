@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { NotificationChannel, ChangeType, NotificationRegistration } from '../models/NotificationRegistration';
 import { useApplicationContext } from '@spteck/react-controls-v2';
-import { IBackendAPIService } from '../services/BackendAPIService';
+import BackendAPIService, { IBackendAPIService } from '../services/BackendAPIService';
 import { ListViewCommandSetContext } from '@microsoft/sp-listview-extensibility';
 import { IConfiguration } from '../models/Configuration';
 import MockBackendAPIService from '../services/MockBackendAPIService';
@@ -32,9 +32,10 @@ export const NotificationSettingsProvider: React.FC<{
     const [notificationSettings, setNotificationSettings] = React.useState<NotificationSettings>({});
 
     //TODO Remove Mock
-    const backendService: IBackendAPIService = MockBackendAPIService.init(
+    const backendService: IBackendAPIService = BackendAPIService.init(
         spoContext,
-        configuration
+        configuration,
+        application?.pageContext?.user
     );
 
     const changeSetting = (setting: Partial<NotificationSettings>): void => {
@@ -48,7 +49,7 @@ export const NotificationSettingsProvider: React.FC<{
         siteUrl: application?.pageContext?.site?.absoluteUrl || "",
         webId: application?.pageContext?.web?.id || "",
         listId: application?.pageContext?.list?.id || "",
-        notificationChannel: notificationSettings.deliveryMethod || [],
+        notificationChannels: notificationSettings.deliveryMethod || [],
         description: notificationSettings.title?.toString()
     }
 
