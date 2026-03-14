@@ -86,8 +86,12 @@ export default class BackendAPIService implements IBackendAPIService {
         try {
             const response = await this.query(`registrations/${this.userContext?.userId}`, 'GET');
             const data: [NotificationRegistration] = await response.json();
-            const registrationsForThisSite = data.filter(item => item.siteUrl === this.context?.pageContext.site.absoluteUrl);
-console.log(registrationsForThisSite);
+            const registrationsForThisSite = data
+                .filter(item =>
+                    item.siteUrl === this.context?.pageContext.site.absoluteUrl
+                    && item.listId === this.context?.pageContext.list?.id.toString()
+                )
+
             console.log('API response for loading registrations:', registrationsForThisSite);
             return Promise.resolve(registrationsForThisSite);
         } catch (error) {
