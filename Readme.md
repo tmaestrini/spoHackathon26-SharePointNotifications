@@ -32,11 +32,11 @@ The solution utilizes a combination of SharePoint Framework (SPFx) for the front
 
 ### SPFx
 
-For the SPFx front-end, we've leveraged `@spteck/react-controls-v2` UI library, built by [João Mendes](https://www.linkedin.com/in/joaojosemendes/) to make it easy to build a moderen experience!
+For the SPFx front-end, we've leveraged `@spteck/react-controls-v2` UI library, built by [João Mendes](https://www.linkedin.com/in/joaojosemendes/) to make it easy to build a modern experience!
 
 ### Power Automate
 
-We've decided to use Power Automate to handle the delivery of notifications to teams. This allows us to leverage the existing Microsoft 365 ecosystem and ensures that notifications are delivered reliably and efficiently, and with minimal setup for administrators, as compared to settings up a teams bot to deliver the notifications, if you were to use this app in production, that might be an approach worth looking into.
+We've decided to use Power Automate to deliver notifications to Micorosft Teams chat or via Email; all resources are bundled in a dedicated solution. This allows us to leverage the existing Microsoft 365 ecosystem, ensuring that notifications are delivered reliably and efficiently with minimal setup for administrators. Alternatively, setting up a Teams bot to deliver the notifications might be an approach worth looking into.
 
 ### Azure function
 
