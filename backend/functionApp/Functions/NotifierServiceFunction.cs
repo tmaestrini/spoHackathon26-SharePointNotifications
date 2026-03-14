@@ -29,8 +29,8 @@ public class NotifierServiceFunction
     private readonly FoundryAINotificationService _foundryAINotificationService;
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
-        PropertyNameCaseInsensitive = true,
-        Converters = { new JsonStringEnumConverter() }
+        PropertyNameCaseInsensitive = false,
+        Converters = { new JsonStringEnumConverter(allowIntegerValues: false) }
     };
 
     public NotifierServiceFunction(

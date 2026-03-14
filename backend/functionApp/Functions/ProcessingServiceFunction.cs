@@ -20,8 +20,8 @@ public class ProcessingServiceFunction
     private readonly AppSettings _appSettings;
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
-        PropertyNameCaseInsensitive = true,
-        Converters = { new JsonStringEnumConverter() }
+        PropertyNameCaseInsensitive = false,
+        Converters = { new JsonStringEnumConverter(allowIntegerValues: false) }
     };
 
     public ProcessingServiceFunction(
@@ -92,6 +92,7 @@ public class ProcessingServiceFunction
             // SharePoint may batch multiple notifications together, so we need to handle each one
             foreach (var notification in webhookData.Value)
             {
+                _logger.LogInformation("Processing webhook notifications {Count}.", notification);
                 await ProcessSingleNotification(notification);
             }
 
