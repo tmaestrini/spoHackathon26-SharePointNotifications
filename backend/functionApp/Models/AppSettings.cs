@@ -23,6 +23,7 @@ namespace functionApp.Models
         public string? TableDeltas { get; set; }
         public string? NotificationServiceUserName { get; set; }
         public string? NotificationMailSubject { get; set; }
+        public string? NotificationFlowUrl { get; set; }
 
         private string this[string prop]
         {

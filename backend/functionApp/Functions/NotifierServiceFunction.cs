@@ -131,94 +131,60 @@ public class NotifierServiceFunction
 
         foreach (var channel in registration.NotificationChannels)
         {
-            switch (channel)
-            {
-                case NotificationChannel.TEAMS:
-                    await SendTeamsNotificationAsync(registration, notificationText);
-                    break;
-                case NotificationChannel.EMAIL:
-                    await SendEmailNotificationAsync(registration, notificationText);
-                    break;
-                default:
-                    _logger.LogWarning("Unsupported notification channel {Channel} for registration {RegistrationId}", channel, registration.Id);
-                    break;
-            }
+            await SendNotificationAsync(registration, notificationText, channel);
         }
     }
 
-    private async Task SendTeamsNotificationAsync(NotificationRegistration registration, string notificationText)
+    private async Task SendNotificationAsync(NotificationRegistration registration, string notificationText, NotificationChannel notificationChannel)
     {
-        _logger.LogInformation("Sending Teams notification for registration {RegistrationId}", registration.Id);
-
-        // TODO: Implement Teams notification logic using Microsoft Graph API to send messages to user.
-    }
-
-    private async Task SendEmailNotificationAsync(NotificationRegistration registration, string notificationText)
-    {
-        _logger.LogInformation("Sending email notification for registration {RegistrationId}", registration.Id);
+        _logger.LogInformation("Sending notification for registration {RegistrationId} on channel {Channel}", registration.Id, notificationChannel);
 
         try
         {
-            // Use service user Graph client for sending emails
+            if (string.IsNullOrEmpty(_appSettings.NotificationFlowUrl))
+            {
+                _logger.LogWarning("NotificationFlowUrl is not configured in app settings");
+                return;
+            }
+
+            // Retrieve the user to get their email for the Teams notification
             var appGraphClient = ConnectionHelper.GraphClient(_appSettings, _logger);
-
-            // Use service user Graph client for sending emails
-            var graphClient = ConnectionHelper.GraphClientForServiceUser(_appSettings, _logger);
-
             var userId = registration.UserId.ToString();
-
-            // Get user by userId
             var user = await appGraphClient.Users[userId].GetAsync();
 
             if (user == null)
             {
-                _logger.LogWarning("User with ID {UserId} not found for email notification", registration.UserId);
+                _logger.LogWarning("User with ID {UserId} not found for sending {Channel} notification", registration.UserId, notificationChannel);
                 return;
             }
 
-            if (string.IsNullOrEmpty(user.Mail))
+            using var httpClient = new HttpClient();
+
+            var requestPayload = new
             {
-                _logger.LogWarning("User with ID {UserId} does not have an email address configured", registration.UserId);
-                return;
+                userPrincipalName = user.UserPrincipalName,
+                notificationText,
+                notificationType = notificationChannel.ToString()
+            };
+
+            var jsonContent = JsonSerializer.Serialize(requestPayload, _jsonOptions);
+            var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+
+            var response = await httpClient.PostAsync(_appSettings.NotificationFlowUrl, content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation("Notification sent successfully for registration {RegistrationId} on channel {Channel}", registration.Id, notificationChannel);
             }
-
-            var message = new Message
+            else
             {
-                Subject = "Something changed!",
-                Body = new ItemBody
-                {
-                    ContentType = BodyType.Text,
-                    Content = notificationText
-                },
-                ToRecipients = new List<Recipient>()
-                {
-                    new Recipient
-                    {
-                        EmailAddress = new EmailAddress
-                        {
-                            Address = user.Mail
-                        }
-                    }
-                }
-            };
-
-            // Create the send mail request body
-            var sendMailRequest = new Microsoft.Graph.Users.Item.SendMail.SendMailPostRequestBody
-            {
-                Message = message,
-                SaveToSentItems = true
-            };
-
-            await graphClient.Users[_appSettings.NotificationServiceUserName]
-                .SendMail
-                .PostAsync(sendMailRequest);
-
-            _logger.LogInformation("Email notification sent successfully to {EmailAddress} for registration {RegistrationId}", 
-                user.Mail, registration.Id);
+                _logger.LogWarning("Notification failed with status code {StatusCode} for registration {RegistrationId} on channel {Channel}", 
+                    response.StatusCode, registration.Id, notificationChannel);
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send email notification for registration {RegistrationId}", registration.Id);
+            _logger.LogError(ex, "Failed to send Teams notification for registration {RegistrationId}", registration.Id);
             throw;
         }
     }
