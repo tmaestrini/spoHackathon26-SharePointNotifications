@@ -1,6 +1,6 @@
 
 import * as React from 'react';
-import { Info24Regular, Dismiss16Regular, ErrorCircleRegular, ErrorCircle24Regular, CheckmarkCircle24Regular, Dismiss24Regular, DismissCircle24Regular } from '@fluentui/react-icons';
+import { Info24Regular, Dismiss16Regular, CheckmarkCircle24Regular, DismissCircle24Regular } from '@fluentui/react-icons';
 import { StackV2, TypographyControl } from '@spteck/react-controls-v2';
 import { tokens } from '@fluentui/react-components';
 
