@@ -19,6 +19,7 @@ export interface IBackendAPIService {
 
 export default class BackendAPIService implements IBackendAPIService {
     private static instance: BackendAPIService;
+    private context: ListViewCommandSetContext | undefined = undefined;
     private userContext: IUserInfo | undefined = undefined;
     private AZURE_FUNCTION_CLIENT_ID: string | undefined = undefined;
     private AZURE_FUNCTION_BASE_URL: string | undefined = undefined;
@@ -28,6 +29,7 @@ export default class BackendAPIService implements IBackendAPIService {
 
     public static init(context: ListViewCommandSetContext, configuration: IConfiguration, userContext?: IUserInfo): BackendAPIService {
         const instance = this.getInstance();
+        instance.context = context;
         instance.userContext = userContext;
         instance.AZURE_FUNCTION_CLIENT_ID = configuration.AZURE_FUNCTION_CLIENT_ID;
         instance.AZURE_FUNCTION_BASE_URL = configuration.AZURE_FUNCTION_BASE_URL;
@@ -53,7 +55,7 @@ export default class BackendAPIService implements IBackendAPIService {
             },
             body: body && JSON.stringify(body)
         });
- 
+
         if (!response || !response.ok) {
             console.error('API request failed:', response);
             return Promise.reject('API request failed');
@@ -83,9 +85,11 @@ export default class BackendAPIService implements IBackendAPIService {
     public async loadRegistrations(): Promise<NotificationRegistration[]> {
         try {
             const response = await this.query(`registrations/${this.userContext?.userId}`, 'GET');
-            const data = await response.json();
-            console.log('API response for loading registrations:', data);
-            return Promise.resolve(data as NotificationRegistration[]);
+            const data: [NotificationRegistration] = await response.json();
+            const registrationsForThisSite = data.filter(item => item.siteUrl === this.context?.pageContext.site.absoluteUrl);
+console.log(registrationsForThisSite);
+            console.log('API response for loading registrations:', registrationsForThisSite);
+            return Promise.resolve(registrationsForThisSite);
         } catch (error) {
             console.error('Error loading notification registrations:', error);
             return Promise.reject({
