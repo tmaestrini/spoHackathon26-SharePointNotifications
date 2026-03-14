@@ -22,6 +22,8 @@ namespace functionApp.Models
         public string? TableWebhookSubscriptions { get; set; }
         public string? TableDeltas { get; set; }
         public string? GitHubToken { get; set; }
+        public string? NotificationServiceUserName { get; set; }
+        public string? NotificationMailSubject { get; set; }
 
         private string this[string prop]
         {

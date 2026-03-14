@@ -1,16 +1,20 @@
+using Azure.Data.Tables;
+using Azure.Storage.Queues;
+using functionApp.Helpers;
 using functionApp.Models;
 using functionApp.Services;
+using Google.Protobuf;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using Microsoft.Graph;
+using Microsoft.Graph.Chats.Item.PermissionGrants.Item;
+using Microsoft.Graph.Models;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Azure.Storage.Queues;
-using Azure.Data.Tables;
-using functionApp.Helpers;
-using System.Runtime.InteropServices;
-using Microsoft.Graph.Chats.Item.PermissionGrants.Item;
+using models = functionApp.Models;
 
 namespace functionApp.Functions;
 
@@ -72,6 +76,12 @@ public class NotifierServiceFunction
             // Retrieve the delta for the webhook subscription
             var delta = await _deltaService.GetDeltaForNotificationAsync(notificationMessage.WebhookNotification);
 
+            if (delta.Count == 0)
+            {
+                _logger.LogInformation("No changes found in delta for webhook notification");
+                return;
+            }
+
             var created = delta.Where(d => d.ChangeType == DeltaChangeType.Created);
             var updated = delta.Where(d => d.ChangeType == DeltaChangeType.Updated);
             var deleted = delta.Where(d => d.ChangeType == DeltaChangeType.Deleted);
@@ -80,13 +90,13 @@ public class NotifierServiceFunction
             {
                 var itemsToNotify = new List<DeltaItemChange>();
 
-                if (registrationGroup.Key == ChangeType.CREATED || registrationGroup.Key == ChangeType.ALL)
+                if (registrationGroup.Key == models.ChangeType.CREATED || registrationGroup.Key == models.ChangeType.ALL)
                     itemsToNotify.AddRange(created);
 
-                if (registrationGroup.Key == ChangeType.UPDATED || registrationGroup.Key == ChangeType.ALL)
+                if (registrationGroup.Key == models.ChangeType.UPDATED || registrationGroup.Key == models.ChangeType.ALL)
                     itemsToNotify.AddRange(updated);
 
-                if (registrationGroup.Key == ChangeType.DELETED || registrationGroup.Key == ChangeType.ALL)
+                if (registrationGroup.Key == models.ChangeType.DELETED || registrationGroup.Key == models.ChangeType.ALL)
                     itemsToNotify.AddRange(deleted);
 
                 foreach (var registration in registrationGroup)
@@ -138,11 +148,78 @@ public class NotifierServiceFunction
 
     private async Task SendTeamsNotificationAsync(NotificationRegistration registration, string notificationText)
     {
-        // TODO: send notification to Microsoft Teams using Graph API
+        _logger.LogInformation("Sending Teams notification for registration {RegistrationId}", registration.Id);
+
+        // TODO: Implement Teams notification logic using Microsoft Graph API to send messages to user.
     }
 
     private async Task SendEmailNotificationAsync(NotificationRegistration registration, string notificationText)
     {
-        // TODO: send notification email using Microsoft Graph API
+        _logger.LogInformation("Sending email notification for registration {RegistrationId}", registration.Id);
+
+        try
+        {
+            // Use service user Graph client for sending emails
+            var appGraphClient = ConnectionHelper.GraphClient(_appSettings, _logger);
+
+            // Use service user Graph client for sending emails
+            var graphClient = ConnectionHelper.GraphClientForServiceUser(_appSettings, _logger);
+
+            var userId = registration.UserId.ToString();
+
+            // Get user by userId
+            var user = await appGraphClient.Users[userId].GetAsync();
+
+            if (user == null)
+            {
+                _logger.LogWarning("User with ID {UserId} not found for email notification", registration.UserId);
+                return;
+            }
+
+            if (string.IsNullOrEmpty(user.Mail))
+            {
+                _logger.LogWarning("User with ID {UserId} does not have an email address configured", registration.UserId);
+                return;
+            }
+
+            var message = new Message
+            {
+                Subject = "Something changed!",
+                Body = new ItemBody
+                {
+                    ContentType = BodyType.Text,
+                    Content = notificationText
+                },
+                ToRecipients = new List<Recipient>()
+                {
+                    new Recipient
+                    {
+                        EmailAddress = new EmailAddress
+                        {
+                            Address = user.Mail
+                        }
+                    }
+                }
+            };
+
+            // Create the send mail request body
+            var sendMailRequest = new Microsoft.Graph.Users.Item.SendMail.SendMailPostRequestBody
+            {
+                Message = message,
+                SaveToSentItems = true
+            };
+
+            await graphClient.Users[_appSettings.NotificationServiceUserName]
+                .SendMail
+                .PostAsync(sendMailRequest);
+
+            _logger.LogInformation("Email notification sent successfully to {EmailAddress} for registration {RegistrationId}", 
+                user.Mail, registration.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send email notification for registration {RegistrationId}", registration.Id);
+            throw;
+        }
     }
 }
