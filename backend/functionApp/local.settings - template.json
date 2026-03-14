@@ -15,6 +15,7 @@
     "TableWebhookSubscriptions": "Webhooks",
     "TableDeltas": "Deltas",
     "WebhookUrl": "WEBHOOK_URL",
+    "GitHubToken": "GITHUB_TOKEN"
     "NotificationServiceUserName": "SERVICE_ACCOUNT_USER_NAME",
     "NotificationMailSubject": "New SharePoint Changes Detected!",
     "NotificationFlowUrl": "NOTIFICATION_FLOW_URL"
