@@ -1,16 +1,20 @@
+using Azure.Data.Tables;
+using Azure.Storage.Queues;
+using functionApp.Helpers;
 using functionApp.Models;
 using functionApp.Services;
+using Google.Protobuf;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using Microsoft.Graph;
+using Microsoft.Graph.Chats.Item.PermissionGrants.Item;
+using Microsoft.Graph.Models;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Azure.Storage.Queues;
-using Azure.Data.Tables;
-using functionApp.Helpers;
-using System.Runtime.InteropServices;
-using Microsoft.Graph.Chats.Item.PermissionGrants.Item;
+using models = functionApp.Models;
 
 namespace functionApp.Functions;
 
@@ -22,6 +26,7 @@ public class NotifierServiceFunction
     private readonly AppSettings _appSettings;
     private readonly DeltaService _deltaService;
     private readonly AINotificationService _aiNotificationService;
+    private readonly FoundryAINotificationService _foundryAINotificationService;
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -34,7 +39,8 @@ public class NotifierServiceFunction
         QueueServiceClient queueServiceClient,
         AppSettings appSettings,
         DeltaService deltaService,
-        AINotificationService aiNotificationService)
+        AINotificationService aiNotificationService,
+        FoundryAINotificationService foundryAINotificationService)
     {
         _logger = logger;
         _registryService = registryService;
@@ -42,14 +48,16 @@ public class NotifierServiceFunction
         _appSettings = appSettings;
         _deltaService = deltaService;
         _aiNotificationService = aiNotificationService;
+        _foundryAINotificationService = foundryAINotificationService;
     }
 
     [Function(nameof(ProcessNotificationQueue))]
     public async Task ProcessNotificationQueue(
-        [QueueTrigger("%NotificationQueueName%")] string queueMessage)
+        [QueueTrigger("notifications")] string queueMessage)
     {
         try
         {
+            
             _logger.LogInformation("Processing notification queue message: {Message}", queueMessage);
 
             var notificationMessage = JsonSerializer.Deserialize<NotificationQueueMessage>(queueMessage, _jsonOptions);
@@ -72,6 +80,12 @@ public class NotifierServiceFunction
             // Retrieve the delta for the webhook subscription
             var delta = await _deltaService.GetDeltaForNotificationAsync(notificationMessage.WebhookNotification);
 
+            if (delta.Count == 0)
+            {
+                _logger.LogInformation("No changes found in delta for webhook notification");
+                return;
+            }
+
             var created = delta.Where(d => d.ChangeType == DeltaChangeType.Created);
             var updated = delta.Where(d => d.ChangeType == DeltaChangeType.Updated);
             var deleted = delta.Where(d => d.ChangeType == DeltaChangeType.Deleted);
@@ -80,18 +94,18 @@ public class NotifierServiceFunction
             {
                 var itemsToNotify = new List<DeltaItemChange>();
 
-                if (registrationGroup.Key == ChangeType.CREATED || registrationGroup.Key == ChangeType.ALL)
+                if (registrationGroup.Key == models.ChangeType.CREATED || registrationGroup.Key == models.ChangeType.ALL)
                     itemsToNotify.AddRange(created);
 
-                if (registrationGroup.Key == ChangeType.UPDATED || registrationGroup.Key == ChangeType.ALL)
+                if (registrationGroup.Key == models.ChangeType.UPDATED || registrationGroup.Key == models.ChangeType.ALL)
                     itemsToNotify.AddRange(updated);
 
-                if (registrationGroup.Key == ChangeType.DELETED || registrationGroup.Key == ChangeType.ALL)
+                if (registrationGroup.Key == models.ChangeType.DELETED || registrationGroup.Key == models.ChangeType.ALL)
                     itemsToNotify.AddRange(deleted);
 
                 foreach (var registration in registrationGroup)
                 {
-                    var notificationText = await _aiNotificationService.ProcessNotificationAsync(itemsToNotify);
+                    var notificationText = await _foundryAINotificationService.ProcessNotificationAsync(itemsToNotify, registration);
 
                     await SendNotificationAsync(registration, notificationText);
                 }
@@ -121,28 +135,61 @@ public class NotifierServiceFunction
 
         foreach (var channel in registration.NotificationChannels)
         {
-            switch (channel)
-            {
-                case NotificationChannel.TEAMS:
-                    await SendTeamsNotificationAsync(registration, notificationText);
-                    break;
-                case NotificationChannel.EMAIL:
-                    await SendEmailNotificationAsync(registration, notificationText);
-                    break;
-                default:
-                    _logger.LogWarning("Unsupported notification channel {Channel} for registration {RegistrationId}", channel, registration.Id);
-                    break;
-            }
+            await SendNotificationAsync(registration, notificationText, channel);
         }
     }
 
-    private async Task SendTeamsNotificationAsync(NotificationRegistration registration, string notificationText)
+    private async Task SendNotificationAsync(NotificationRegistration registration, string notificationText, NotificationChannel notificationChannel)
     {
-        // TODO: send notification to Microsoft Teams using Graph API
-    }
+        _logger.LogInformation("Sending notification for registration {RegistrationId} on channel {Channel}", registration.Id, notificationChannel);
 
-    private async Task SendEmailNotificationAsync(NotificationRegistration registration, string notificationText)
-    {
-        // TODO: send notification email using Microsoft Graph API
+        try
+        {
+            if (string.IsNullOrEmpty(_appSettings.NotificationFlowUrl))
+            {
+                _logger.LogWarning("NotificationFlowUrl is not configured in app settings");
+                return;
+            }
+
+            // Retrieve the user to get their email for the Teams notification
+            var appGraphClient = ConnectionHelper.GraphClient(_appSettings, _logger);
+            var userId = registration.UserId.ToString();
+            var user = await appGraphClient.Users[userId].GetAsync();
+
+            if (user == null)
+            {
+                _logger.LogWarning("User with ID {UserId} not found for sending {Channel} notification", registration.UserId, notificationChannel);
+                return;
+            }
+
+            using var httpClient = new HttpClient();
+
+            var requestPayload = new
+            {
+                userPrincipalName = user.UserPrincipalName,
+                notificationText,
+                notificationType = notificationChannel.ToString()
+            };
+
+            var jsonContent = JsonSerializer.Serialize(requestPayload, _jsonOptions);
+            var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+
+            var response = await httpClient.PostAsync(_appSettings.NotificationFlowUrl, content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation("Notification sent successfully for registration {RegistrationId} on channel {Channel}", registration.Id, notificationChannel);
+            }
+            else
+            {
+                _logger.LogWarning("Notification failed with status code {StatusCode} for registration {RegistrationId} on channel {Channel}", 
+                    response.StatusCode, registration.Id, notificationChannel);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send Teams notification for registration {RegistrationId}", registration.Id);
+            throw;
+        }
     }
 }

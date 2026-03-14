@@ -38,7 +38,7 @@ public class ProcessingServiceFunction
 
     [Function("ProcessWebhookNotification")]
     public async Task<IActionResult> ProcessWebhookNotification(
-        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "webhook/notification")] HttpRequest req)
+        [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req)
     {
         _logger.LogInformation("Processing SharePoint webhook notification.");
 
@@ -49,8 +49,6 @@ public class ProcessingServiceFunction
             _logger.LogInformation("Webhook validation successful.");
             return new OkObjectResult(validationToken.ToString());
         }
-
-        // If not a validation request, process the notification data
 
         try
         {
@@ -78,7 +76,7 @@ public class ProcessingServiceFunction
                 return new BadRequestObjectResult("Incomplete request data received.");
             }
 
-            _logger.LogDebug("Received webhook payload: {Body}", requestBody);
+            _logger.LogInformation("Received webhook payload: {Body}", requestBody);
 
             // Deserialize the notification data
             var webhookData = JsonSerializer.Deserialize<WebhookNotificationData>(requestBody, _jsonOptions);
@@ -178,6 +176,7 @@ public class ProcessingServiceFunction
     /// <returns>The result contains a list of notification registrations matching the provided identifiers.</returns>
     private async Task<List<NotificationRegistration>> FindMatchingRegistrations(Guid siteId, string webId, string listId)
     {
+        //TODO : Webhook Notification doesnt have SiteID Instead we filter out with webID and listID. We can remove siteID from registration in future if not required.
         _logger.LogInformation($"Finding matching registrations for site \"{siteId}\", web \"{webId}\", list \"{listId}\".");
 
         var allRegistrations = new List<NotificationRegistration>();
@@ -187,7 +186,7 @@ public class ProcessingServiceFunction
         var registrations = _registryService.GetTableClient()
                                     .QueryAsync<NotificationRegistrationEntity>()
                                     .Where(n => 
-                                        n.SiteId == siteId &&
+                                        //n.SiteId == siteId &&
                                         n.WebId.ToString().ToLowerInvariant() == webId.ToLowerInvariant() &&
                                         n.ListId.ToString().ToLowerInvariant() == listId.ToLowerInvariant()
                                     )

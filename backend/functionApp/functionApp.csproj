@@ -39,6 +39,7 @@
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues" Version="5.5.0" />
     <PackageReference Include="Microsoft.Graph" Version="5.103.0" />
     <PackageReference Include="PnP.Framework" Version="1.18.0" />
+	<PackageReference Include="GitHub.Copilot.SDK" Version="0.1.31" />
   </ItemGroup>
 
 </Project>
