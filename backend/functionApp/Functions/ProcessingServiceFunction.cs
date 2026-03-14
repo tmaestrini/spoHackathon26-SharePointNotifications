@@ -50,8 +50,6 @@ public class ProcessingServiceFunction
             return new OkObjectResult(validationToken.ToString());
         }
 
-        // If not a validation request, process the notification data
-
         try
         {
             // Validate request has content
