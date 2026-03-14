@@ -31,5 +31,6 @@ builder.Services.AddSingleton<DeltaService>();
 builder.Services.AddSingleton<WebhookSubscriptionService>();
 builder.Services.AddSingleton<WebhookService>();
 builder.Services.AddSingleton<AINotificationService>();
+builder.Services.AddSingleton<FoundryAINotificationService>();
 
 builder.Build().Run();

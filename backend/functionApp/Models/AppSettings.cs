@@ -21,6 +21,9 @@ namespace functionApp.Models
         public string? WebhookUrl { get; set; }
         public string? TableWebhookSubscriptions { get; set; }
         public string? TableDeltas { get; set; }
+        public string? GitHubToken { get; set; }
+        public string? AzureFoundryApiUrl { get; set; }
+        public string? AzureFoundryApiKey { get; set; }
         public string? NotificationServiceUserName { get; set; }
         public string? NotificationMailSubject { get; set; }
 
