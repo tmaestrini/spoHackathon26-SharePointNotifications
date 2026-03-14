@@ -142,29 +142,5 @@ namespace functionApp.Helpers
             _cachedGraphClient = new GraphServiceClient(authCodeCredential);
             return _cachedGraphClient;
         }
-
-        /// <summary>
-        /// Creates a Graph client using service user credentials for sending emails
-        /// </summary>
-        /// <param name="env">App settings containing service user credentials</param>
-        /// <param name="logging">Logger instance</param>
-        /// <returns>GraphServiceClient configured for service user authentication</returns>
-        public static GraphServiceClient GraphClientForServiceUser(this AppSettings env, ILogger logging)
-        {
-            if (string.IsNullOrEmpty(env.AADAppSecret))
-            {
-                logging?.LogError("App secret not configured. Please set AADAppSecret.");
-                throw new InvalidOperationException("App secret not configured.");
-            }
-
-            logging?.LogDebug("Creating Graph client for service user authentication using client secret");
-
-            var credential = new ClientSecretCredential(
-                env.TenantId,
-                env.AADAppId,
-                env.AADAppSecret);
-
-            return new GraphServiceClient(credential);
-        }
     }
 }
