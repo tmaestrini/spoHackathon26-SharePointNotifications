@@ -22,6 +22,11 @@ namespace functionApp.Models
         public string? TableWebhookSubscriptions { get; set; }
         public string? TableDeltas { get; set; }
         public string? GitHubToken { get; set; }
+        public string? AzureFoundryApiUrl { get; set; }
+        public string? AzureFoundryApiKey { get; set; }
+        public string? AzureFoundryDeploymentName { get; set; }
+        public string? AzureFoundryModelName { get; set; }
+        public string? saiApiKey { get; set; }
 
         private string this[string prop]
         {

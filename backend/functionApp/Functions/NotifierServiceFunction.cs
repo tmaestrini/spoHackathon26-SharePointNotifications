@@ -22,6 +22,7 @@ public class NotifierServiceFunction
     private readonly AppSettings _appSettings;
     private readonly DeltaService _deltaService;
     private readonly AINotificationService _aiNotificationService;
+    private readonly FoundryAINotificationService _foundryAINotificationService;
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -34,7 +35,8 @@ public class NotifierServiceFunction
         QueueServiceClient queueServiceClient,
         AppSettings appSettings,
         DeltaService deltaService,
-        AINotificationService aiNotificationService)
+        AINotificationService aiNotificationService,
+        FoundryAINotificationService foundryAINotificationService)
     {
         _logger = logger;
         _registryService = registryService;
@@ -42,6 +44,7 @@ public class NotifierServiceFunction
         _appSettings = appSettings;
         _deltaService = deltaService;
         _aiNotificationService = aiNotificationService;
+        _foundryAINotificationService = foundryAINotificationService;
     }
 
     [Function(nameof(ProcessNotificationQueue))]
@@ -50,6 +53,7 @@ public class NotifierServiceFunction
     {
         try
         {
+            
             _logger.LogInformation("Processing notification queue message: {Message}", queueMessage);
 
             var notificationMessage = JsonSerializer.Deserialize<NotificationQueueMessage>(queueMessage, _jsonOptions);
@@ -91,7 +95,7 @@ public class NotifierServiceFunction
 
                 foreach (var registration in registrationGroup)
                 {
-                    var notificationText = await _aiNotificationService.ProcessNotificationAsync(itemsToNotify, registration);
+                    var notificationText = await _foundryAINotificationService.ProcessNotificationAsync(itemsToNotify, registration);
 
                     await SendNotificationAsync(registration, notificationText);
                 }
