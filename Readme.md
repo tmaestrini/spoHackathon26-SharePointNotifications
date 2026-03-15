@@ -42,11 +42,54 @@ We've decided to use Power Automate to deliver notifications to Micorosft Teams 
 
 ### Azure Functions
 
-TODO
+The backend runs on .NET 10 (Isolated Worker) and handles everything from managing subscriptions to delivering notifications. Here's what each function does:
 
-### Azure AI Foundry
+- NotificationServiceFunction — Exposes REST APIs for creating, reading, updating, and deleting notification registrations. When a user subscribes through the SPFx front-end, this function stores the registration in Azure Table Storage and sets up a SharePoint webhook on the target list or library.
 
-TODO (Nishkalank) - We've leveraged Azure Document intelligence to ensure that the users receive a notification that adds value to them
+- ProcessingServiceFunction — Receives incoming SharePoint webhook callbacks. It validates the payload, correlates the notification with matching registrations (by web ID and list ID), and queues a message to Azure Queue Storage for async processing.
+
+- NotifierServiceFunction — Triggered by the notification queue. It calls the DeltaService to fetch what actually changed (using SharePoint's delta API), compares versions and file content, then passes everything to the AI service for summarization. The final notification text is sent per channel (Teams or Email) to a Power Automate flow for delivery.
+
+- WebhookRenewalServiceFunction — A timer-triggered function that runs monthly to renew SharePoint webhook subscriptions before they expire, keeping the notification pipeline alive without manual intervention.
+
+Supporting services like `DeltaService`, `WebhookSubscriptionService`, and `NotificationRegistryService` handle the table storage operations, delta token tracking, and webhook lifecycle management. Everything is wired up through dependency injection in `Program.cs`.
+
+#### Azure Configuration
+
+The Azure Function uses environment variables for all configuration. Copy `local.settings - template.json` to `local.settings.json` and fill in the values.
+
+| Setting | Description | Example |
+|---------|-------------|---------|
+| `AzureWebJobsStorage` | Azure Storage connection string (used for Table Storage, Queues, and function runtime) | `UseDevelopmentStorage=true` |
+| `AADAppId` | Microsoft Entra ID (Azure AD) application client ID | `b337dc49-...` |
+| `AADAppSecret` | Entra app client secret (used for app-only auth) | `your-secret` |
+| `TenantId` | Microsoft 365 tenant ID | `a25bb1b5-...` |
+| `VaultUri` | Azure Key Vault URI for certificate-based auth | `https://your-vault.vault.azure.net/` |
+| `VaultCertName` | Certificate name in Key Vault | `certificatename` |
+| `CertThumbprint` | Thumbprint of the certificate for SharePoint auth | `F6B530...` |
+| `SharePointTenantName` | SharePoint Online tenant hostname | `contoso.sharepoint.com` |
+| `WebhookUrl` | Public URL of the `ProcessWebhookNotification` function (SharePoint sends callbacks here) | `https://your-func.azurewebsites.net/api/ProcessWebhookNotification?code=...` |
+| `TableNotificationRegistrations` | Table Storage table name for notification registrations | `NotificationRegistrations` |
+| `TableWebhookSubscriptions` | Table Storage table name for webhook subscriptions | `WebhooksTableName` |
+| `TableDeltas` | Table Storage table name for delta tokens | `DeltasTableName` |
+| `NotificationQueueName` | Queue name for async notification processing | `notificationsqueuename` |
+| `NotificationFlowUrl` | Power Automate HTTP trigger URL that delivers Teams/Email notifications | `https://prod-xx.westeurope.logic.azure.com/...` |
+| `NotificationServiceUserName` | Service account UPN used for sending notifications | `service@contoso.com` |
+| `NotificationMailSubject` | Subject line for email notifications | `New SharePoint Changes Detected!` |
+| `AzureFoundryApiUrl` | Azure AI Foundry chat completions endpoint URL | `https://your-resource.services.ai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-12-01-preview` |
+| `AzureFoundryModelName` | Model name used in Azure AI Foundry | `gpt-4o` |
+
+> **Note:** `local.settings.json` is gitignored. Never commit secrets — use Azure Key Vault references or App Service application settings in production.
+
+### Azure AI
+
+When a change is detected in a SharePoint list or library, we don't just send raw field values to the user — that wouldn't be very helpful. Instead, we pass the delta changes (including document content when available) to Azure AI Foundry to generate a meaningful, human-readable summary.
+
+The `FoundryAINotificationService` takes the detected changes — things like version diffs, field-level updates, and even the actual text content of documents (extracted using our `DocumentTextExtractor` which handles .docx, .pdf, .txt, and more) — and sends all of that context to Microsoft AI Foundry's chat completions API powered by `gpt-4o`. The AI compares current vs. previous file content, highlights what specifically changed in the metadata, and produces a concise notification the user can actually act on.
+
+We also format the output differently depending on the notification channel: Markdown for Teams messages and inline-styled HTML for emails, so each channel gets the best rendering experience. If the AI service is unavailable, we fall back to a basic count-based summary so the user still gets notified.
+
+The goal was simple: notifications should tell you what changed and why it matters, not just that something changed.
 
 ## Installation
 
