@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Elements xmlns="http://schemas.microsoft.com/sharepoint/">
+    <CustomAction
+        Title="Notifications"
+        RegistrationId="100"
+        RegistrationType="List"
+        Location="ClientSideExtension.ListViewCommandSet.CommandBar"
+        ClientSideComponentId="41c2dfe1-049c-449b-9e78-d57819512652"
+        ClientSideComponentProperties="{&quot;AZURE_FUNCTION_BASE_URL&quot;:&quot;&quot;, &quot;AZURE_FUNCTION_CLIENT_ID&quot;:&quot;&quot;}">
+    </CustomAction>
+    <CustomAction
+        Title="Notifications"
+        RegistrationId="101"
+        RegistrationType="List"
+        Location="ClientSideExtension.ListViewCommandSet.CommandBar"
+        ClientSideComponentId="41c2dfe1-049c-449b-9e78-d57819512652"
+        ClientSideComponentProperties="{&quot;AZURE_FUNCTION_BASE_URL&quot;:&quot;&quot;, &quot;AZURE_FUNCTION_CLIENT_ID&quot;:&quot;&quot;}">
+    </CustomAction>
+</Elements>
