@@ -34,7 +34,7 @@ The solution utilizes a combination of SharePoint Framework (SPFx) for the front
 
 ### SPFx
 
-For the SPFx front-end, we've leveraged `@spteck/react-controls-v2` UI library (<https://www.npmjs.com/package/@spteck/react-controls-v2>), built by [João Mendes](https://www.linkedin.com/in/joaojosemendes/) to make it easy to build a modern experience!
+For the SPFx front-end, we've leveraged `@spteck/react-controls-v2` UI library (<https://www.npmjs.com/package/@spteck/react-controls-v2>), built by [João Mendes](https://www.linkedin.com/in/joaojosemendes/) to make it easy to build a modern experience! The SPFx extension works on document libraries as well as lists.
 
 ### Power Automate
 
