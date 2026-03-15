@@ -31,6 +31,7 @@ Do not be afraid to ask question. We are here to help you succeed in helping us 
 - Depending on your currend working device...
     - `backend`: Press `F5` to run the Azure Functions locally and start debugging
     - `spfx`: Press `heft start` to start the project on your local machine
+- Deploy the (managed) solution under `power-platform` to a Power Platform environment of your choice
 
 ## ❓ More guidance and tips
 
