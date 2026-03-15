@@ -28,7 +28,7 @@ The Bishop Team are:
 
 ## Architecture
 
-The solution utilizes a combination of SharePoint Framework (SPFx) for the front-end components and several backend services (Azure Functions) for handling notification registration, processing, AI assisted summarization (Azure AI Foundry) and other business logic. Notifications are delivered to the end user through Power Automate.
+The solution utilizes a combination of SharePoint Framework (SPFx) for the front-end components and several backend services (Azure Functions) for handling notification registration, processing, AI assisted summarization (Microsoft Foundry) and other business logic. Notifications are delivered to the end user through Power Automate.
 
 ![High Level Architecture](./assets/highlevelArchitecture.png)
 
@@ -76,14 +76,14 @@ The Azure Function uses environment variables for all configuration. Copy `local
 | `NotificationFlowUrl` | Power Automate HTTP trigger URL that delivers Teams/Email notifications | `https://prod-xx.westeurope.logic.azure.com/...` |
 | `NotificationServiceUserName` | Service account UPN used for sending notifications | `service@contoso.com` |
 | `NotificationMailSubject` | Subject line for email notifications | `New SharePoint Changes Detected!` |
-| `AzureFoundryApiUrl` | Azure AI Foundry chat completions endpoint URL | `https://your-resource.services.ai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-12-01-preview` |
-| `AzureFoundryModelName` | Model name used in Azure AI Foundry | `gpt-4o` |
+| `AzureFoundryApiUrl` | Microsoft Foundry chat completions endpoint URL | `https://your-resource.services.ai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-12-01-preview` |
+| `AzureFoundryModelName` | Model name used in Microsoft Foundry | `gpt-4o` |
 
 > **Note:** `local.settings.json` is gitignored. Never commit secrets — use Azure Key Vault references or App Service application settings in production.
 
 ### Microsoft Foundry
 
-When a change is detected in a SharePoint list or library, we don't just send raw field values to the user — that wouldn't be very helpful. Instead, we pass the delta changes (including document content when available) to Azure AI Foundry to generate a meaningful, human-readable summary.
+When a change is detected in a SharePoint list or library, we don't just send raw field values to the user — that wouldn't be very helpful. Instead, we pass the delta changes (including document content when available) to Microsoft Foundry to generate a meaningful, human-readable summary.
 
 The `FoundryAINotificationService` takes the detected changes — things like version diffs, field-level updates, and even the actual text content of documents (extracted using our `DocumentTextExtractor` which handles .docx, .pdf, .txt, and more) — and sends all of that context to Microsoft Foundry's chat completions API powered by `gpt-4o`. The AI compares current vs. previous file content, highlights what specifically changed in the metadata, and produces a concise notification the user can actually act on.
 
