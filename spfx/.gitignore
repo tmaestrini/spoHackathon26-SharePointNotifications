@@ -1,0 +1,22 @@
+# SPFx build output
+dist/
+lib/
+lib-commonjs/
+release/
+temp/
+jest-output/
+
+# Dependencies
+node_modules/
+
+# Build artifacts
+*.sppkg
+sharepoint/solution/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
