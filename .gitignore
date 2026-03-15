@@ -4,9 +4,6 @@
 
 /backend/functionApp/Properties/PublishProfiles
 
-# Backend folder (not part of dev-spfx)
-backend/
-
 # macOS
 .DS_Store
 **/.DS_Store
