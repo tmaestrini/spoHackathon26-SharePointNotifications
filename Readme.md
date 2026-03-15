@@ -81,11 +81,11 @@ The Azure Function uses environment variables for all configuration. Copy `local
 
 > **Note:** `local.settings.json` is gitignored. Never commit secrets — use Azure Key Vault references or App Service application settings in production.
 
-### Azure AI
+### Microsoft Foundry
 
 When a change is detected in a SharePoint list or library, we don't just send raw field values to the user — that wouldn't be very helpful. Instead, we pass the delta changes (including document content when available) to Azure AI Foundry to generate a meaningful, human-readable summary.
 
-The `FoundryAINotificationService` takes the detected changes — things like version diffs, field-level updates, and even the actual text content of documents (extracted using our `DocumentTextExtractor` which handles .docx, .pdf, .txt, and more) — and sends all of that context to Microsoft AI Foundry's chat completions API powered by `gpt-4o`. The AI compares current vs. previous file content, highlights what specifically changed in the metadata, and produces a concise notification the user can actually act on.
+The `FoundryAINotificationService` takes the detected changes — things like version diffs, field-level updates, and even the actual text content of documents (extracted using our `DocumentTextExtractor` which handles .docx, .pdf, .txt, and more) — and sends all of that context to Microsoft Foundry's chat completions API powered by `gpt-4o`. The AI compares current vs. previous file content, highlights what specifically changed in the metadata, and produces a concise notification the user can actually act on.
 
 We also format the output differently depending on the notification channel: Markdown for Teams messages and inline-styled HTML for emails, so each channel gets the best rendering experience. If the AI service is unavailable, we fall back to a basic count-based summary so the user still gets notified.
 
