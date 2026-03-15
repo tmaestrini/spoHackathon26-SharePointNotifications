@@ -54,33 +54,6 @@ The backend runs on .NET 10 (Isolated Worker) and handles everything from managi
 
 Supporting services like `DeltaService`, `WebhookSubscriptionService`, and `NotificationRegistryService` handle the table storage operations, delta token tracking, and webhook lifecycle management. Everything is wired up through dependency injection in `Program.cs`.
 
-#### Azure Configuration
-
-The Azure Function uses environment variables for all configuration. Copy `local.settings - template.json` to `local.settings.json` and fill in the values.
-
-| Setting | Description | Example |
-|---------|-------------|---------|
-| `AzureWebJobsStorage` | Azure Storage connection string (used for Table Storage, Queues, and function runtime) | `UseDevelopmentStorage=true` |
-| `AADAppId` | Microsoft Entra ID (Azure AD) application client ID | `b337dc49-...` |
-| `AADAppSecret` | Entra app client secret (used for app-only auth) | `your-secret` |
-| `TenantId` | Microsoft 365 tenant ID | `a25bb1b5-...` |
-| `VaultUri` | Azure Key Vault URI for certificate-based auth | `https://your-vault.vault.azure.net/` |
-| `VaultCertName` | Certificate name in Key Vault | `certificatename` |
-| `CertThumbprint` | Thumbprint of the certificate for SharePoint auth | `F6B530...` |
-| `SharePointTenantName` | SharePoint Online tenant hostname | `contoso.sharepoint.com` |
-| `WebhookUrl` | Public URL of the `ProcessWebhookNotification` function (SharePoint sends callbacks here) | `https://your-func.azurewebsites.net/api/ProcessWebhookNotification?code=...` |
-| `TableNotificationRegistrations` | Table Storage table name for notification registrations | `NotificationRegistrations` |
-| `TableWebhookSubscriptions` | Table Storage table name for webhook subscriptions | `WebhooksTableName` |
-| `TableDeltas` | Table Storage table name for delta tokens | `DeltasTableName` |
-| `NotificationQueueName` | Queue name for async notification processing | `notificationsqueuename` |
-| `NotificationFlowUrl` | Power Automate HTTP trigger URL that delivers Teams/Email notifications | `https://prod-xx.westeurope.logic.azure.com/...` |
-| `NotificationServiceUserName` | Service account UPN used for sending notifications | `service@contoso.com` |
-| `NotificationMailSubject` | Subject line for email notifications | `New SharePoint Changes Detected!` |
-| `AzureFoundryApiUrl` | Microsoft Foundry chat completions endpoint URL | `https://your-resource.services.ai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-12-01-preview` |
-| `AzureFoundryModelName` | Model name used in Microsoft Foundry | `gpt-4o` |
-
-> **Note:** `local.settings.json` is gitignored. Never commit secrets — use Azure Key Vault references or App Service application settings in production.
-
 ### Microsoft Foundry
 
 When a change is detected in a SharePoint list or library, we don't just send raw field values to the user — that wouldn't be very helpful. Instead, we pass the delta changes (including document content when available) to Microsoft Foundry to generate a meaningful, human-readable summary.
