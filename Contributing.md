@@ -34,4 +34,4 @@ Do not be afraid to ask question. We are here to help you succeed in helping us 
 
 ## ❓ More guidance and tips
 
-For more usage guidance and tips go to the repo [README](./Readme.md).
+For more usage guidance and tips go to the repo [README](./README.md).
