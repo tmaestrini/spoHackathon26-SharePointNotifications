@@ -105,9 +105,18 @@ public class NotifierServiceFunction
 
                 foreach (var registration in registrationGroup)
                 {
-                    var notificationText = await _foundryAINotificationService.ProcessNotificationAsync(itemsToNotify, registration);
+                    var channels = registration.NotificationChannels ?? [];
+                    if (channels.Length == 0)
+                    {
+                        _logger.LogWarning("No notification channels configured for registration {RegistrationId}", registration.Id);
+                        continue;
+                    }
 
-                    await SendNotificationAsync(registration, notificationText);
+                    foreach (var channel in channels)
+                    {
+                        var notificationText = await _foundryAINotificationService.ProcessNotificationAsync(itemsToNotify, registration, channel);
+                        await SendNotificationAsync(registration, notificationText, channel);
+                    }
                 }
             }
 
@@ -122,20 +131,6 @@ public class NotifierServiceFunction
         {
             _logger.LogError(ex, "Error processing notification queue message");
             throw; // Re-throw to move message to poison queue
-        }
-    }
-
-    private async Task SendNotificationAsync(NotificationRegistration registration, string notificationText)
-    {
-        if (registration.NotificationChannels == null || registration.NotificationChannels.Count() == 0)
-        {
-            _logger.LogWarning("No notification channels configured for registration {RegistrationId}", registration.Id);
-            return;
-        }
-
-        foreach (var channel in registration.NotificationChannels)
-        {
-            await SendNotificationAsync(registration, notificationText, channel);
         }
     }
 

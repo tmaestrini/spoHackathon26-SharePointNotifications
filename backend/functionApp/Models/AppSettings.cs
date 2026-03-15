@@ -28,6 +28,10 @@ namespace functionApp.Models
         public string? NotificationMailSubject { get; set; }
         public string? NotificationFlowUrl { get; set; }
 
+        public string? SystemPrompt { get; set; }
+        public string? TeamsPrompt { get; set; }
+        public string? EmailPrompt { get; set; }
+
         private string this[string prop]
         {
             set

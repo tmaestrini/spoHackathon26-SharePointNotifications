@@ -34,7 +34,7 @@ public class FoundryAINotificationService
         _logger.LogInformation("FoundryAINotificationService initialized.");
     }
 
-    public async Task<string> ProcessNotificationAsync(List<DeltaItemChange> items, NotificationRegistration registration)
+    public async Task<string> ProcessNotificationAsync(List<DeltaItemChange> items, NotificationRegistration registration, NotificationChannel channel)
     {
         if (items.Count == 0)
         {
@@ -77,64 +77,65 @@ public class FoundryAINotificationService
                 PreviousFileVersionLabel = i.PreviousFileVersionLabel
             });
  
+ 
+            var systemMessage = _appSettings.SystemPrompt;
 
-            var systemMessage = "You are a SharePoint notification assistant. Your job is to summarize list or library changes into clear, concise, human-readable notification messages. Focus on what changed (created, updated, deleted), which items were affected, and any relevant field values. When version information and field-level changes are available, highlight what specifically changed between the current and previous version. For documents, compare the current and previous file content and describe what was added, removed, or modified. Mention the file name and version labels. Keep the summary brief and actionable.";
+            var outputFormat = channel == NotificationChannel.EMAIL
+                ? _appSettings.EmailPrompt
+                : $"""
+                 Instructions - Use clean Markdown. Use this exact structure per item.
+
+                 Here is a summary of the changes made:
+
+                 **ChangeType**: Updated/Created/Deleted
+
+                 **Document Name**: Updated Document Name or List Item ID <Add the URL of the file here as a link if it is a file>
+
+                 **Version**: Updated from version X.X to Y.Y (or just current version)
+
+                 **Last Modified By**: Display name of the user not the User principal name
+
+                 **Modified Date**: Date
+
+                 ## Content Changes
+
+                 Describe what text was added, removed, or modified by comparing current and previous file content.
+
+                 ## Metadata Changes
+
+                 **FieldName**: old value → new value (if its a user field then Display name of the user not the User principal name)
+
+                 For Created items, replace "Content Changes" with "Content" (summarize the content) and "Metadata Changes" with "Metadata" (list key values).
+
+                 For Deleted items, omit Content/Metadata sections. Include Last Version, Deleted By, and Deleted On if available.
+
+                 CRITICAL: Every single field label (ChangeType, Document Name, Version, Last Modified By, Modified Date, and any metadata field name) MUST be bold using **label** syntax. No exceptions.
+                 """;
 
             var userMessage = $"""
                 The user has subscribed to notifications with the following description:
                 "{registration.Description ?? "All changes"}"
-
+                
                 Change type filter: {registration.ChangeType}
-
+                
                 Here are the detected changes in the SharePoint list/library. If it is a file, then compare the CurrentFileContent and PreviousFileContent to see the difference in changes:
                 {JsonSerializer.Serialize(changeSummary, new JsonSerializerOptions { WriteIndented = true })}
 
-                Please provide a concise, human-readable notification summary of these changes in the below similar format or in a much better way. 
-                
-                If its an update, The summary should be in below format and should only include the fields that were changed:
-                
-                '
-                - ChangeType : Updated
-                - Document Name: Updated Document Name or List Item ID <Add the URL of the file here if it is a file>
-                - Version: Updated from version to version if available, otherwise just mention the current version label
-                - Last Modified By: ABCDEF
-                - Modification Date: March 14, 2026
-
-                ## Content Changes (Added or Modified Text)
-
-                "Hi abc, I have completed the Document changes as well, This is the Text which is returned."
-
-                ## Metadata Changes
-                Field1: Previous Value -> New Value
-
-                No other field-level changes were detected in the document metadata.'
-
-                If it's a creation, summarize the changes in a similar concise format, mentioning the key details of the created, such as the item type (document, list item), name, and any relevant field values.
-
-                '
-                - ChangeType : Created
-                - Document Name: Document Name or List Item ID <Add the URL of the file here if it is a file>
-                - Version: if available, mention the version label for created item
-                - Last Modified By: ABCDEF
-                - Modification Date: March 14, 2026
-                
-                ## Content : 
-                Summarize the content of the document here. If it's a non-text file, just mention the file name and type.
-                
-                ## Metadata:
-                Specify the key metadata values for the created item. For example:
-                Field1: Value1'
-
-                If its a deletion, the summary should be like below format:
-                '
-                - ChangeType : Deleted
-                - Document Name: if its a document mention the document name, if its a list item then mention the item id.
-                - Version: if available, mention the last version label before deletion
-                - When it was deleted: if available, mention the deletion date and time
-                - Who deleted it: if available, mention the user who performed the deletion'
-
+                Below is the output format you must follow when generating the summary for these changes. Adhere to the structure and formatting rules exactly
+                {outputFormat}
+ 
+                Rules:
+                - Replace ALL placeholders with actual data from the JSON — do NOT leave any placeholder text.
+                - Include ALL fields that have values in the JSON data. Do NOT skip ChangeType, Document Name, Version, Modified By, or Date.
+                - For Updated items with file content, ALWAYS include the Content Changes section comparing CurrentFileContent vs PreviousFileContent.
+                - For Updated items with FieldChanges, ALWAYS include the Metadata Changes section listing each changed field.
+                - Omit sections ONLY when the corresponding data is truly null/empty in the JSON.
+                - Output ONLY the formatted summary — nothing else.
                 """;
-
+            _logger.LogInformation(systemMessage);
+            _logger.LogInformation(outputFormat);
+            _logger.LogInformation(userMessage);
+            
             var requestUrl = _appSettings.AzureFoundryApiUrl;
             var requestBody = new
             {
@@ -167,9 +168,12 @@ public class FoundryAINotificationService
             }
             var data = JsonSerializer.Deserialize<ChatCompletionResponse>(responseJson, _jsonOptions);
 
+            _logger.LogInformation(data?.Choices?.FirstOrDefault()?.Message?.Content);
             var result = data?.Choices?.FirstOrDefault()?.Message?.Content
                 ?? "Changes were detected but could not be summarized.";
-
+            // Strip (```html ... ```) that the AI may wrap around output
+            result = StripExtraCharactersInEmailContent(result);
+            _logger.LogInformation(result);
             _logger.LogInformation("Azure AI Foundry processing complete for registration {RegistrationId}.", registration.Id);
             return result;
         }
@@ -194,6 +198,23 @@ public class FoundryAINotificationService
         return parts.Count > 0
             ? $"SharePoint changes detected: {string.Join(", ", parts)}."
             : "No changes detected.";
+    }
+
+    private static string StripExtraCharactersInEmailContent(string text)
+    {
+        var trimmed = text.Trim();
+        // Remove ```html or ```markdown at the start and ``` at the end
+        if (trimmed.StartsWith("```"))
+        {
+            var firstNewline = trimmed.IndexOf('\n');
+            if (firstNewline >= 0)
+                trimmed = trimmed[(firstNewline + 1)..];
+        }
+        if (trimmed.EndsWith("```"))
+        {
+            trimmed = trimmed[..^3];
+        }
+        return trimmed.Trim();
     }
 
     /// <summary>
