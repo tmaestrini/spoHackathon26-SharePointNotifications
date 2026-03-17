@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Elements xmlns="http://schemas.microsoft.com/sharepoint/">
+    <ClientSideComponentInstance
+        Title="Notifications"
+        Location="ClientSideExtension.ListViewCommandSet.CommandBar"
+        ListTemplateId="100"
+        Properties="{&quot;AZURE_FUNCTION_BASE_URL&quot;:&quot;&quot;, &quot;AZURE_FUNCTION_CLIENT_ID&quot;:&quot;&quot;, &quot;AZURE_FUNCTION_KEY&quot;:&quot;&quot;}"
+        ComponentId="41c2dfe1-049c-449b-9e78-d57819512652" />
+    <ClientSideComponentInstance
+        Title="Notifications"
+        Location="ClientSideExtension.ListViewCommandSet.CommandBar"
+        ListTemplateId="101"
+        Properties="{&quot;AZURE_FUNCTION_BASE_URL&quot;:&quot;&quot;, &quot;AZURE_FUNCTION_CLIENT_ID&quot;:&quot;&quot;, &quot;AZURE_FUNCTION_KEY&quot;:&quot;&quot;}"
+        ComponentId="41c2dfe1-049c-449b-9e78-d57819512652" />
+</Elements>

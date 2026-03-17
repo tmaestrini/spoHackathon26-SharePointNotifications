@@ -1,0 +1,29 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "AADAppId": "ENTRA_APP_ID",
+    "AADAppSecret": "ENTRA_APP_SECRET",
+    "TenantId": "ENTRA_TENANT_ID",
+    "VaultUri": "KEY_VAULT_URI",
+    "VaultCertName": "KEY_VAULT_CERT_NAME",
+    "CertThumbprint": "CERT_THUMBPRINT",
+    "TableNotificationRegistrations": "NotificationRegistrations",
+    "NotificationQueueName": "notifications",
+    "SharePointTenantName": "SHAREPOINT_TENANT_NAME",
+    "TableWebhookSubscriptions": "Webhooks",
+    "TableDeltas": "Deltas",
+    "WebhookUrl": "WEBHOOK_URL",
+    "GitHubToken": "GITHUB_TOKEN",
+    "AzureFoundryApiUrl": "AzureFoundryApiUrl",
+    "AzureFoundryApiKey": "AzureFoundryApiKey",
+    "AzureFoundryDeploymentName": "AzureFoundryDeploymentName",
+    "AzureFoundryModelName": "AzureFoundryModelName",
+    "NotificationServiceUserName": "SERVICE_ACCOUNT_USER_NAME",
+    "NotificationMailSubject": "New SharePoint Changes Detected!",
+    "NotificationFlowUrl": "NOTIFICATION_FLOW_URL",
+    "EmailPrompt": "EmailPrompt",
+    "SystemPrompt": "SystemPrompt"
+  }
+}
